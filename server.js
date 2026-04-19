@@ -8,7 +8,7 @@ const app = express();
 // Middleware
 app.use(cors()); // Allows your frontend to communicate with this backend
 app.use(express.json());
-
+app.use(express.static('public'));
 // Helper function to get Edamam Nutrition Data
 async function getNutrition(food) {
     try {
