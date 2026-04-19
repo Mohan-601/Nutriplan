@@ -1120,7 +1120,7 @@ async function generateDietPlan() {
   try {
     // ───────────── CALL LOCAL BACKEND ─────────────
     // Instead of calling OpenRouter/Edamam here, we call our own secure API
-    const response = await fetch("http://localhost:3000/api/diet", {
+    const response = await fetch("/api/diet", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
