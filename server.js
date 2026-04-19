@@ -9,6 +9,16 @@ const app = express();
 app.use(cors()); // Allows your frontend to communicate with this backend
 app.use(express.json());
 app.use(express.static('public'));
+const path = require('path'); // Add this at the very top with other requires
+
+// ... existing code ...
+
+app.use(express.static('public'));
+
+// ADD THIS PART HERE:
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 // Helper function to get Edamam Nutrition Data
 async function getNutrition(food) {
     try {
