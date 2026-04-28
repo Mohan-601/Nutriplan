@@ -341,9 +341,20 @@ async function queuedAI(prompt, maxTokens, aiConfig, cacheKey) {
   return result;
 }
 
-// ══════════════════════════════════════════════════
-// ROUTE: Daily Diet Plan
-// ══════════════════════════════════════════════════
+function safeJsonParse(str) {
+  let inString = false, escaped = false, result = '';
+  for (let i = 0; i < str.length; i++) {
+    const ch = str[i];
+    if (escaped) { result += ch; escaped = false; continue; }
+    if (ch === '\\') { escaped = true; result += ch; continue; }
+    if (ch === '"') { inString = !inString; result += ch; continue; }
+    if (inString && ch.charCodeAt(0) < 0x20) {
+      const map = {'\n':'\\n','\r':'\\r','\t':'\\t','\b':'\\b','\f':'\\f'};
+      result += map[ch] || '';
+    } else { result += ch; }
+  }
+  return JSON.parse(result);
+}
 app.post('/api/diet', async (req, res) => {
   const { targetCal, protein, condition, foodPref, budget, aiConfig } = req.body;
 
@@ -392,7 +403,7 @@ Return ONLY raw JSON (no markdown, no extra text):
 
   try {
     const cleanJson = await queuedAI(prompt, 2000, aiConfig || {}, cacheKey);
-    const plan = JSON.parse(cleanJson);
+    const plan = safeJsonParse(cleanJson);
 
     // Enrich with Edamam nutrition data
     const enrichedMeals = [];
@@ -483,7 +494,7 @@ Respond in ONLY this exact JSON format (no markdown, no extra text):
 
   try {
     const cleanJson = await queuedAI(prompt, 1000, aiConfig || {}, cacheKey);
-    const analysis = JSON.parse(cleanJson);
+    const analysis = safeJsonParse(cleanJson);
     res.json(analysis);
   } catch (error) {
     const detail = error?.response?.data?.error?.message || error?.response?.data?.message || error.message;
@@ -554,7 +565,7 @@ IMPORTANT: Return ONLY raw JSON (no markdown, no extra text):
 
   try {
     const cleanJson = await queuedAI(prompt, 3000, aiConfig || {}, cacheKey);
-    const weekPlan = JSON.parse(cleanJson);
+    const weekPlan = safeJsonParse(cleanJson);
     res.json(weekPlan);
   } catch (error) {
     const detail = error?.response?.data?.error?.message || error?.response?.data?.message || error.message;
@@ -576,4 +587,4 @@ app.listen(PORT, () => {
   if (!process.env.EDAMAM_APP_ID || !process.env.EDAMAM_APP_KEY) {
     console.warn('⚠️  WARNING: EDAMAM_APP_ID / EDAMAM_APP_KEY not set. Nutrition data will show 0 values.');
   }
-});
+});safeJsonParse(cleanJson)
