@@ -132,9 +132,47 @@ app.get('/api/status', (req, res) => {
   });
 });
 
-app.get('/', (req, res) => {
+// ── Diagnostic endpoint — visit /api/test in browser to check setup ──
+app.get('/api/test', async (req, res) => {
+  const checks = {
+    geminiKey:  !!process.env.GEMINI_API_KEY,
+    groqKey:    !!(process.env.GROQ_API_KEY || process.env.OPENROUTER_API_KEY),
+    edamamKeys: !!(process.env.EDAMAM_APP_ID && process.env.EDAMAM_APP_KEY),
+    aiResult:   null,
+    aiError:    null
+  };
+
+  try {
+    const result = await callAI('Say exactly: {"ok":true}', 20, {});
+    checks.aiResult = result;
+  } catch (err) {
+    const detail = err?.response?.data?.error?.message || err?.response?.data?.message || err.message;
+    const status = err?.response?.status;
+    checks.aiError = status ? `HTTP ${status}: ${detail}` : detail;
+  }
+
+  res.json(checks);
+});
+
+
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
+
+// ── Safe JSON parser (handles stray newlines inside strings) ──
+function safeJsonParse(str) {
+  let inString = false, escaped = false, result = '';
+  for (let i = 0; i < str.length; i++) {
+    const ch = str[i];
+    if (escaped) { result += ch; escaped = false; continue; }
+    if (ch === '\\') { escaped = true; result += ch; continue; }
+    if (ch === '"') { inString = !inString; result += ch; continue; }
+    if (inString && ch.charCodeAt(0) < 0x20) {
+      const map = { '\n': '\\n', '\r': '\\r', '\t': '\\t', '\b': '\\b', '\f': '\\f' };
+      result += map[ch] || '';
+    } else { result += ch; }
+  }
+  return JSON.parse(result);
+}
 
 // ══════════════════════════════════════════════════
 // CONDITION-BASED DIETARY RULES
@@ -282,7 +320,7 @@ async function callAI(prompt, maxTokens = 2000, aiConfig = {}) {
   if (process.env.GEMINI_API_KEY) {
     try {
       const geminiRes = await axios.post(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
         {
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
@@ -341,20 +379,9 @@ async function queuedAI(prompt, maxTokens, aiConfig, cacheKey) {
   return result;
 }
 
-function safeJsonParse(str) {
-  let inString = false, escaped = false, result = '';
-  for (let i = 0; i < str.length; i++) {
-    const ch = str[i];
-    if (escaped) { result += ch; escaped = false; continue; }
-    if (ch === '\\') { escaped = true; result += ch; continue; }
-    if (ch === '"') { inString = !inString; result += ch; continue; }
-    if (inString && ch.charCodeAt(0) < 0x20) {
-      const map = {'\n':'\\n','\r':'\\r','\t':'\\t','\b':'\\b','\f':'\\f'};
-      result += map[ch] || '';
-    } else { result += ch; }
-  }
-  return JSON.parse(result);
-}
+// ══════════════════════════════════════════════════
+// ROUTE: Daily Diet Plan
+// ══════════════════════════════════════════════════
 app.post('/api/diet', async (req, res) => {
   const { targetCal, protein, condition, foodPref, budget, aiConfig } = req.body;
 
@@ -587,4 +614,4 @@ app.listen(PORT, () => {
   if (!process.env.EDAMAM_APP_ID || !process.env.EDAMAM_APP_KEY) {
     console.warn('⚠️  WARNING: EDAMAM_APP_ID / EDAMAM_APP_KEY not set. Nutrition data will show 0 values.');
   }
-});safeJsonParse(cleanJson)
+});
