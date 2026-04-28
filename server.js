@@ -304,7 +304,7 @@ async function callAI(prompt, maxTokens = 2000, aiConfig = {}) {
   // Uses llama3-8b (faster + more tokens/min on free tier)
   // than llama3-70b for better throughput in demos.
   const groqRes = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-    model: 'llama3-8b-8192',   // 14400 tokens/min vs 6000 for 70b on free tier
+    model: 'llama-3.1-8b-instant',   // llama3-8b-8192 was deprecated — use this instead
     max_tokens: maxTokens,
     messages: [{ role: 'user', content: prompt }]
   }, {
@@ -429,8 +429,10 @@ Return ONLY raw JSON (no markdown, no extra text):
     });
 
   } catch (error) {
-    console.error('Backend Error (/api/diet):', error.message);
-    res.status(500).json({ error: 'Failed to generate diet plan. Please try again.' });
+    const detail = error?.response?.data?.error?.message || error?.response?.data?.message || error.message;
+    const status = error?.response?.status;
+    console.error('Backend Error (/api/diet):', detail, status ? `(HTTP ${status})` : '');
+    res.status(500).json({ error: `Failed to generate diet plan: ${detail}` });
   }
 });
 
@@ -484,8 +486,10 @@ Respond in ONLY this exact JSON format (no markdown, no extra text):
     const analysis = JSON.parse(cleanJson);
     res.json(analysis);
   } catch (error) {
-    console.error('Backend Error (/api/improve-meal):', error.message);
-    res.status(500).json({ error: 'Failed to analyze meal. Please try again.' });
+    const detail = error?.response?.data?.error?.message || error?.response?.data?.message || error.message;
+    const status = error?.response?.status;
+    console.error('Backend Error (/api/improve-meal):', detail, status ? `(HTTP ${status})` : '');
+    res.status(500).json({ error: `Failed to analyze meal: ${detail}` });
   }
 });
 
@@ -553,8 +557,10 @@ IMPORTANT: Return ONLY raw JSON (no markdown, no extra text):
     const weekPlan = JSON.parse(cleanJson);
     res.json(weekPlan);
   } catch (error) {
-    console.error('Backend Error (/api/weekly-plan):', error.message);
-    res.status(500).json({ error: 'Failed to generate weekly plan. Please try again.' });
+    const detail = error?.response?.data?.error?.message || error?.response?.data?.message || error.message;
+    const status = error?.response?.status;
+    console.error('Backend Error (/api/weekly-plan):', detail, status ? `(HTTP ${status})` : '');
+    res.status(500).json({ error: `Failed to generate weekly plan: ${detail}` });
   }
 });
 
@@ -562,5 +568,12 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`NutriPlan Backend running on port ${PORT}`);
   console.log(`Queue: max ${QUEUE_CONCURRENCY} concurrent AI calls, ${QUEUE_INTERVAL_MS}ms interval`);
-  console.log(`AI: ${process.env.GEMINI_API_KEY ? 'Gemini Flash (primary) + Groq (fallback)' : 'Groq only'}`);
+  if (!process.env.GEMINI_API_KEY && !process.env.GROQ_API_KEY && !process.env.OPENROUTER_API_KEY) {
+    console.error('⚠️  WARNING: No AI API key found! Set GEMINI_API_KEY or GROQ_API_KEY in environment variables.');
+  } else {
+    console.log(`AI: ${process.env.GEMINI_API_KEY ? 'Gemini Flash (primary) + Groq (fallback)' : 'Groq only'}`);
+  }
+  if (!process.env.EDAMAM_APP_ID || !process.env.EDAMAM_APP_KEY) {
+    console.warn('⚠️  WARNING: EDAMAM_APP_ID / EDAMAM_APP_KEY not set. Nutrition data will show 0 values.');
+  }
 });
