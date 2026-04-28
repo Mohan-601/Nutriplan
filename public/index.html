@@ -1712,7 +1712,10 @@ async function generateDietPlan() {
       })
     });
 
-    if (!response.ok) throw new Error(`Server error: ${response.status}`);
+    if (!response.ok) {
+      const errBody = await response.json().catch(() => ({}));
+      throw new Error(errBody.error || `Server error: ${response.status}`);
+    }
     const { meals, conditionLabel } = await response.json();
 
     const mealEmojis = { Breakfast: '🌅', Lunch: '🥗', Dinner: '🌙', Snacks: '🍎' };
@@ -1866,7 +1869,10 @@ async function analyzeMeal() {
       body: JSON.stringify({ mealDescription: input, condition, aiConfig: state.aiConfig })
     });
 
-    if (!res.ok) throw new Error('Server error');
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.error || `Server error: ${res.status}`);
+    }
     const data = await res.json();
 
     const priorityColors = { high: 'priority-high', medium: 'priority-medium', low: 'priority-low' };
@@ -1968,7 +1974,10 @@ async function generateWeeklyPlan() {
       })
     });
 
-    if (!res.ok) throw new Error('Server error');
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.error || `Server error: ${res.status}`);
+    }
     const data = await res.json();
 
     renderWeeklyPlan(data);
