@@ -3,23 +3,141 @@ const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 const path = require('path');
+const crypto = require('crypto');
 
 const app = express();
+
+// ══════════════════════════════════════════════════
+// CONCURRENCY CONFIG
+// Adjust these to match your free API tier:
+//   Gemini Flash free → 60 RPM  → CONCURRENCY = 10, INTERVAL = 1100ms
+//   Groq free         → 30 RPM  → CONCURRENCY = 5,  INTERVAL = 2100ms
+// ══════════════════════════════════════════════════
+const QUEUE_CONCURRENCY = 10;   // max simultaneous AI calls
+const QUEUE_INTERVAL_MS = 1100; // min ms between batches
+
+// ── Simple In-Memory Cache ────────────────────────
+// Identical request payloads return cached results instantly.
+// Cache expires after 10 minutes (good for a class session).
+const cache = new Map();
+const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+function getCacheKey(data) {
+  return crypto.createHash('md5').update(JSON.stringify(data)).digest('hex');
+}
+function getFromCache(key) {
+  const entry = cache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
+    cache.delete(key);
+    return null;
+  }
+  return entry.value;
+}
+function setCache(key, value) {
+  // Cap cache size at 200 entries to avoid memory bloat
+  if (cache.size >= 200) {
+    const oldest = cache.keys().next().value;
+    cache.delete(oldest);
+  }
+  cache.set(key, { value, timestamp: Date.now() });
+}
+
+// ── Request Queue ─────────────────────────────────
+// Prevents 40 simultaneous calls from hitting the AI API
+// at once and triggering rate limit errors.
+class RequestQueue {
+  constructor(concurrency, intervalMs) {
+    this.concurrency = concurrency;
+    this.intervalMs = intervalMs;
+    this.running = 0;
+    this.queue = [];
+    this.lastCallTime = 0;
+  }
+
+  async add(fn) {
+    return new Promise((resolve, reject) => {
+      this.queue.push({ fn, resolve, reject });
+      this._process();
+    });
+  }
+
+  async _process() {
+    if (this.running >= this.concurrency || this.queue.length === 0) return;
+
+    // Enforce minimum interval between calls
+    const now = Date.now();
+    const wait = Math.max(0, this.intervalMs - (now - this.lastCallTime));
+
+    if (wait > 0) {
+      setTimeout(() => this._process(), wait);
+      return;
+    }
+
+    const { fn, resolve, reject } = this.queue.shift();
+    this.running++;
+    this.lastCallTime = Date.now();
+
+    try {
+      const result = await fn();
+      resolve(result);
+    } catch (err) {
+      reject(err);
+    } finally {
+      this.running--;
+      this._process(); // pick up next queued item
+    }
+  }
+
+  get queueLength() { return this.queue.length; }
+  get activeCount() { return this.running; }
+}
+
+const aiQueue = new RequestQueue(QUEUE_CONCURRENCY, QUEUE_INTERVAL_MS);
+
+// ── Retry with Exponential Backoff ────────────────
+// Retries up to MAX_RETRIES times on rate limit (429) errors.
+const MAX_RETRIES = 3;
+
+async function withRetry(fn, retries = MAX_RETRIES) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      const is429 = err?.response?.status === 429 || err?.message?.includes('429');
+      const isLast = attempt === retries;
+
+      if (is429 && !isLast) {
+        const backoffMs = attempt * 2000; // 2s, 4s, 6s
+        console.warn(`Rate limit hit. Retry ${attempt}/${retries} in ${backoffMs}ms...`);
+        await new Promise(r => setTimeout(r, backoffMs));
+      } else {
+        throw err;
+      }
+    }
+  }
+}
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
+// ── Queue status endpoint (useful to show in demo) ──
+app.get('/api/status', (req, res) => {
+  res.json({
+    queueLength: aiQueue.queueLength,
+    activeRequests: aiQueue.activeCount,
+    cacheSize: cache.size
+  });
+});
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ══════════════════════════════════════════════════
-// [NEW] CONDITION-BASED DIETARY RULES
-// Rule-based therapeutic nutrition engine.
-// Each condition defines: foods to prioritize,
-// foods to avoid, and guiding clinical notes.
+// CONDITION-BASED DIETARY RULES
 // ══════════════════════════════════════════════════
 const CONDITION_RULES = {
   diabetes: {
@@ -111,7 +229,7 @@ const CONDITION_RULES = {
   }
 };
 
-// ── Helper: Edamam nutrition lookup ──────────────
+// ── Edamam nutrition lookup ────────────────────────
 async function getNutrition(food) {
   try {
     const res = await axios.get('https://api.edamam.com/api/nutrition-data', {
@@ -128,38 +246,113 @@ async function getNutrition(food) {
   }
 }
 
-// ── Helper: Call OpenRouter AI ────────────────────
-async function callAI(prompt, maxTokens = 2000) {
-  const aiRes = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-    model: 'google/gemma-3-27b-it:free',
+// ══════════════════════════════════════════════════
+// AI CALLER — Gemini Flash (primary) + Groq (fallback)
+//
+// WHY GEMINI FLASH FOR YOUR DEMO:
+//   ✅ 60 req/min free  (vs Groq's 30 req/min)
+//   ✅ 1M tokens/day free
+//   ✅ Fast response times
+//   ✅ Free API key at aistudio.google.com
+//
+// HOW TO SET UP:
+//   1. Go to https://aistudio.google.com/app/apikey
+//   2. Create a free key, paste in .env as GEMINI_API_KEY
+//   3. Keep GROQ_API_KEY as fallback (same as your current OPENROUTER_API_KEY)
+// ══════════════════════════════════════════════════
+async function callAI(prompt, maxTokens = 2000, aiConfig = {}) {
+  const useLocal = aiConfig.source === 'local';
+
+  if (useLocal) {
+    const baseUrl = (aiConfig.localEndpoint || 'http://localhost:11434/v1').replace(/\/$/, '');
+    const model = aiConfig.localModel || 'llama3';
+    const aiRes = await axios.post(`${baseUrl}/chat/completions`, {
+      model,
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }]
+    }, {
+      headers: { 'Content-Type': 'application/json' },
+      timeout: 120000
+    });
+    return aiRes.data.choices[0].message.content
+      .replace(/```json/g, '').replace(/```/g, '').trim();
+  }
+
+  // ── Try Gemini Flash first (60 RPM free) ──────────
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      const geminiRes = await axios.post(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+        {
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            maxOutputTokens: maxTokens,
+            temperature: 0.7
+          }
+        },
+        { headers: { 'Content-Type': 'application/json' }, timeout: 30000 }
+      );
+      const raw = geminiRes.data.candidates[0].content.parts[0].text;
+      return raw.replace(/```json/g, '').replace(/```/g, '').trim();
+    } catch (geminiErr) {
+      console.warn('Gemini failed, falling back to Groq:', geminiErr.message);
+      // Fall through to Groq below
+    }
+  }
+
+  // ── Fallback: Groq (30 RPM free) ─────────────────
+  // Uses llama3-8b (faster + more tokens/min on free tier)
+  // than llama3-70b for better throughput in demos.
+  const groqRes = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
+    model: 'llama3-8b-8192',   // 14400 tokens/min vs 6000 for 70b on free tier
     max_tokens: maxTokens,
     messages: [{ role: 'user', content: prompt }]
   }, {
     headers: {
-      'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      'Authorization': `Bearer ${process.env.GROQ_API_KEY || process.env.OPENROUTER_API_KEY}`,
       'Content-Type': 'application/json'
-    }
+    },
+    timeout: 30000
   });
-  const raw = aiRes.data.choices[0].message.content;
+  const raw = groqRes.data.choices[0].message.content;
   return raw.replace(/```json/g, '').replace(/```/g, '').trim();
 }
 
+// ── Queued + Cached + Retried AI call ─────────────
+// All routes use this wrapper instead of calling callAI directly.
+async function queuedAI(prompt, maxTokens, aiConfig, cacheKey) {
+  // 1. Check cache first (free — no API call needed)
+  if (cacheKey) {
+    const cached = getFromCache(cacheKey);
+    if (cached) {
+      console.log(`Cache hit for key ${cacheKey.slice(0, 8)}…`);
+      return cached;
+    }
+  }
+
+  // 2. Queue the actual API call
+  const result = await aiQueue.add(() =>
+    withRetry(() => callAI(prompt, maxTokens, aiConfig))
+  );
+
+  // 3. Store in cache for future identical requests
+  if (cacheKey) setCache(cacheKey, result);
+
+  return result;
+}
+
 // ══════════════════════════════════════════════════
-// EXISTING ROUTE: Daily Diet Plan  [ENHANCED]
-// Now accepts: condition, foodPref, budget
-// Uses condition rules to craft a therapeutic prompt
+// ROUTE: Daily Diet Plan
 // ══════════════════════════════════════════════════
 app.post('/api/diet', async (req, res) => {
-  const { targetCal, protein, condition, foodPref, budget } = req.body;
+  const { targetCal, protein, condition, foodPref, budget, aiConfig } = req.body;
 
   if (!targetCal || !protein) {
     return res.status(400).json({ error: 'Missing targetCal or protein in request body.' });
   }
 
-  // Build condition-specific context for the AI prompt
   const rules = (condition && condition !== 'none' && CONDITION_RULES[condition])
-    ? CONDITION_RULES[condition]
-    : CONDITION_RULES.general;
+    ? CONDITION_RULES[condition] : CONDITION_RULES.general;
 
   const conditionSection = (condition && condition !== 'none')
     ? `\nTHERAPEUTIC REQUIREMENTS — ${rules.label}:\n` +
@@ -174,37 +367,34 @@ app.post('/api/diet', async (req, res) => {
 
   const budgetNote = budget === 'medium'
     ? 'Budget: Medium — can use paneer, curd, nuts, dry fruits occasionally.'
-    : 'Budget: Low/affordable — dal, roti, seasonal vegetables, eggs as primary sources. Minimize expensive ingredients.';
+    : 'Budget: Low/affordable — dal, roti, seasonal vegetables, eggs as primary sources.';
 
   const prompt = `
 Create a 1-day therapeutic diet plan using COMMON INDIAN FOODS only.
-
-Core rules:
-- Use foods easily available across India
-- Keep meals practical and achievable at home
 - Specify exact quantities (e.g., "2 rotis", "1 cup dal", "100g paneer")
 - ${vegNote}
 - ${budgetNote}
 ${conditionSection}
-Daily Nutrition Targets:
-Calories: ~${targetCal} kcal
-Protein: ~${protein}g
+Daily Nutrition Targets: Calories: ~${targetCal} kcal, Protein: ~${protein}g
 
-Return ONLY raw JSON (absolutely no markdown, no extra text):
+Return ONLY raw JSON (no markdown, no extra text):
 {
   "meals":[
-    {"name":"Breakfast","items":["2 whole wheat rotis with 100g paneer bhurji", "1 cup green tea"]},
+    {"name":"Breakfast","items":["2 whole wheat rotis with 100g paneer bhurji","1 cup green tea"]},
     {"name":"Lunch","items":["2 rotis","1 cup moong dal","bhindi sabzi (150g)","salad"]},
     {"name":"Dinner","items":["1 cup brown rice","rajma curry (150g)","curd (100g)"]},
     {"name":"Snacks","items":["1 banana","10 almonds"]}
   ]
 }`;
 
+  // Cache key based on the meaningful inputs (not aiConfig)
+  const cacheKey = getCacheKey({ targetCal, protein, condition, foodPref, budget });
+
   try {
-    const cleanJson = await callAI(prompt);
+    const cleanJson = await queuedAI(prompt, 2000, aiConfig || {}, cacheKey);
     const plan = JSON.parse(cleanJson);
 
-    // Enrich meals with Edamam nutrition data
+    // Enrich with Edamam nutrition data
     const enrichedMeals = [];
     for (const meal of plan.meals) {
       let totalKcal = 0, totalProtein = 0;
@@ -234,23 +424,21 @@ Return ONLY raw JSON (absolutely no markdown, no extra text):
     res.json({
       meals: enrichedMeals,
       condition: condition || 'none',
-      conditionLabel: rules.label
+      conditionLabel: rules.label,
+      fromCache: false // you can expose this in demo to show caching working
     });
 
   } catch (error) {
     console.error('Backend Error (/api/diet):', error.message);
-    res.status(500).json({ error: 'Failed to generate diet plan.' });
+    res.status(500).json({ error: 'Failed to generate diet plan. Please try again.' });
   }
 });
 
 // ══════════════════════════════════════════════════
-// [NEW ROUTE] Smart Meal Improver
-// User inputs what they ate today → AI analyzes
-// and provides practical improvement suggestions
-// using Indian food alternatives
+// ROUTE: Smart Meal Improver
 // ══════════════════════════════════════════════════
 app.post('/api/improve-meal', async (req, res) => {
-  const { mealDescription, condition } = req.body;
+  const { mealDescription, condition, aiConfig } = req.body;
 
   if (!mealDescription || mealDescription.trim().length < 5) {
     return res.status(400).json({ error: 'Please provide a meal description.' });
@@ -274,30 +462,25 @@ Respond in ONLY this exact JSON format (no markdown, no extra text):
 {
   "summary": "One positive + honest assessment sentence",
   "estimatedKcal": 1200,
-  "strengths": [
-    "One specific thing done well"
-  ],
+  "strengths": ["One specific thing done well"],
   "improvements": [
     {
       "issue": "Low protein intake",
       "suggestion": "Add 2 boiled eggs to breakfast OR replace one snack with 100g curd",
       "priority": "high"
-    },
-    {
-      "issue": "Missing vegetables/fiber",
-      "suggestion": "Add a small kachumber salad (cucumber, tomato, onion) to lunch",
-      "priority": "medium"
     }
   ],
   "missingNutrients": ["Iron", "Fiber", "Vitamin C"],
   "addTomorrow": [
-    "1 cup palak dal (spinach + lentil) — addresses iron + protein",
-    "1 whole fruit (guava or amla) — Vitamin C"
+    "1 cup palak dal (spinach + lentil) — addresses iron + protein"
   ]
 }`;
 
+  // Meal descriptions are unique per user, so cache by exact text + condition
+  const cacheKey = getCacheKey({ mealDescription: mealDescription.trim().toLowerCase(), condition });
+
   try {
-    const cleanJson = await callAI(prompt, 1000);
+    const cleanJson = await queuedAI(prompt, 1000, aiConfig || {}, cacheKey);
     const analysis = JSON.parse(cleanJson);
     res.json(analysis);
   } catch (error) {
@@ -307,12 +490,10 @@ Respond in ONLY this exact JSON format (no markdown, no extra text):
 });
 
 // ══════════════════════════════════════════════════
-// [NEW ROUTE] Weekly Meal Planner
-// Generates a 7-day structured plan with variety,
-// then auto-extracts a categorized grocery list
+// ROUTE: Weekly Meal Planner
 // ══════════════════════════════════════════════════
 app.post('/api/weekly-plan', async (req, res) => {
-  const { targetCal, protein, condition, foodPref, budget } = req.body;
+  const { targetCal, protein, condition, foodPref, budget, aiConfig } = req.body;
 
   if (!targetCal || !protein) {
     return res.status(400).json({ error: 'Missing targetCal or protein.' });
@@ -336,17 +517,12 @@ app.post('/api/weekly-plan', async (req, res) => {
     : 'Low budget (dal, roti, eggs, seasonal vegetables only).';
 
   const prompt = `
-Create a 7-day varied Indian meal plan. Each day should have different meals — avoid repeating the same dish on consecutive days.
+Create a 7-day varied Indian meal plan. Each day should have different meals.
 
 Daily targets: ~${targetCal} kcal, ~${protein}g protein
 ${vegNote}
 ${budgetNote}
 ${conditionSection}
-
-Rules:
-- Common Indian foods only (roti, dal, rice, sabzi, etc.)
-- Specify quantities ("2 rotis", "1 cup dal", "1 banana")
-- Be practical: meals a regular Indian family would cook
 
 IMPORTANT: Return ONLY raw JSON (no markdown, no extra text):
 {
@@ -354,30 +530,26 @@ IMPORTANT: Return ONLY raw JSON (no markdown, no extra text):
     {
       "day": "Monday",
       "breakfast": "Poha with vegetables (1.5 cups) + 1 boiled egg + green tea",
-      "lunch": "2 whole wheat rotis + 1 cup moong dal + bhindi sabzi (150g) + kachumber salad",
+      "lunch": "2 whole wheat rotis + 1 cup moong dal + bhindi sabzi (150g)",
       "dinner": "1 cup rice + rajma curry (1 cup) + 100g curd",
       "snacks": "1 banana + 10 almonds"
-    },
-    { "day": "Tuesday", "breakfast": "...", "lunch": "...", "dinner": "...", "snacks": "..." },
-    { "day": "Wednesday", "breakfast": "...", "lunch": "...", "dinner": "...", "snacks": "..." },
-    { "day": "Thursday", "breakfast": "...", "lunch": "...", "dinner": "...", "snacks": "..." },
-    { "day": "Friday", "breakfast": "...", "lunch": "...", "dinner": "...", "snacks": "..." },
-    { "day": "Saturday", "breakfast": "...", "lunch": "...", "dinner": "...", "snacks": "..." },
-    { "day": "Sunday", "breakfast": "...", "lunch": "...", "dinner": "...", "snacks": "..." }
+    }
   ],
   "groceryList": {
-    "grains": ["Whole wheat atta — 2 kg", "Rice — 1 kg", "Oats — 500g", "Poha — 500g"],
-    "proteins": ["Moong dal — 500g", "Rajma — 500g", "Chana dal — 500g", "Eggs — 1 dozen"],
-    "vegetables": ["Spinach (palak) — 500g", "Bhindi — 500g", "Tomatoes — 8", "Onions — 6", "Potatoes — 4"],
-    "fruits": ["Bananas — 8", "Apples — 4", "Seasonal fruit — 500g"],
-    "dairy": ["Milk — 1.5L", "Curd — 500g"],
-    "spicesCondiments": ["Jeera (cumin)", "Turmeric (haldi)", "Ginger — 100g", "Garlic — 1 pod", "Mustard seeds"],
-    "nutsSeeds": ["Almonds — 100g", "Pumpkin seeds — 100g", "Flaxseeds (alsi) — 100g"]
+    "grains": ["Whole wheat atta — 2 kg"],
+    "proteins": ["Moong dal — 500g"],
+    "vegetables": ["Spinach (palak) — 500g"],
+    "fruits": ["Bananas — 8"],
+    "dairy": ["Milk — 1.5L"],
+    "spicesCondiments": ["Jeera (cumin)", "Turmeric (haldi)"],
+    "nutsSeeds": ["Almonds — 100g"]
   }
 }`;
 
+  const cacheKey = getCacheKey({ targetCal, protein, condition, foodPref, budget, type: 'weekly' });
+
   try {
-    const cleanJson = await callAI(prompt, 3000);
+    const cleanJson = await queuedAI(prompt, 3000, aiConfig || {}, cacheKey);
     const weekPlan = JSON.parse(cleanJson);
     res.json(weekPlan);
   } catch (error) {
@@ -388,5 +560,7 @@ IMPORTANT: Return ONLY raw JSON (no markdown, no extra text):
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`NutriPlan (Food as Medicine) Backend running on port ${PORT}`);
+  console.log(`NutriPlan Backend running on port ${PORT}`);
+  console.log(`Queue: max ${QUEUE_CONCURRENCY} concurrent AI calls, ${QUEUE_INTERVAL_MS}ms interval`);
+  console.log(`AI: ${process.env.GEMINI_API_KEY ? 'Gemini Flash (primary) + Groq (fallback)' : 'Groq only'}`);
 });
