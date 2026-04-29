@@ -1,1157 +1,1287 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>NutriPlan — Food as Medicine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 
 <style>
-  /* ══ CSS Variables ════════════════════════════════ */
-  :root {
-    --cream:       #FEFBF3;
-    --cream-dark:  #F5EFE0;
-    --cream-mid:   #EDE4CE;
-    --green-deep:  #1A3D18;
-    --green-main:  #3A7036;
-    --green-mid:   #5A9B54;
-    --green-light: #A8D5A2;
-    --green-pale:  #E8F5E4;
-    --sage:        #7DB56A;
-    --brown:       #6B5535;
-    --text-dark:   #111C0F;
-    --text-mid:    #4A5E47;
-    --text-muted:  #8A9E87;
-    --border:      #D8E8D4;
-    --white:       #FFFFFF;
-    
-    /* Modern Shadows */
-    --shadow-sm:   0 2px 8px rgba(42,80,40,0.04);
-    --shadow-md:   0 8px 24px rgba(42,80,40,0.08);
-    --shadow-lg:   0 20px 40px rgba(42,80,40,0.12);
-    --shadow-glow: 0 0 20px rgba(58,112,54,0.15);
-    
-    --radius-sm:   10px;
-    --radius-md:   16px;
-    --radius-lg:   24px;
-    --radius-xl:   32px;
-    
-    /* Tool accent colors */
-    --tool-blue:   #3B82F6;
-    --tool-amber:  #D97706;
-    --tool-violet: #7C3AED;
-    
-    /* Transitions */
-    --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
+/* ═══════════════════════════════════════════════
+   CSS VARIABLES
+═══════════════════════════════════════════════ */
+:root {
+  --cream:       #FEFBF3;
+  --cream-dark:  #F5EFE0;
+  --cream-mid:   #EDE4CE;
+  --green-deep:  #1A3D18;
+  --green-main:  #3A7036;
+  --green-mid:   #5A9B54;
+  --green-light: #A8D5A2;
+  --green-pale:  #E8F5E4;
+  --sage:        #7DB56A;
+  --brown:       #6B5535;
+  --text-dark:   #111C0F;
+  --text-mid:    #4A5E47;
+  --text-muted:  #8A9E87;
+  --border:      #D8E8D4;
+  --white:       #FFFFFF;
+  --shadow-sm:   0 2px 8px rgba(42,80,40,0.06);
+  --shadow-md:   0 8px 24px rgba(42,80,40,0.10);
+  --shadow-lg:   0 20px 40px rgba(42,80,40,0.14);
+  --radius-sm:   10px;
+  --radius-md:   16px;
+  --radius-lg:   24px;
+  --radius-xl:   32px;
+  --tool-blue:   #3B82F6;
+  --tool-amber:  #D97706;
+  --tool-violet: #7C3AED;
+  --sidebar-w:   260px;
+  --topbar-h:    68px;
+  --btmbar-h:    72px;
+  --transition:  all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --bounce:      all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
 
-  /* ══ Reset & Base ═════════════════════════════════ */
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { font-size: 16px; scroll-behavior: smooth; }
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--cream);
-    color: var(--text-dark);
-    min-height: 100vh;
-    line-height: 1.6;
-    overflow-x: hidden;
-  }
+/* ═══════════════════════════════════════════════
+   RESET
+═══════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--text-dark);
+  min-height: 100vh;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
 
-  /* ══ Animations ═══════════════════════════════════ */
-  @keyframes slideUpFade {
-    0% { opacity: 0; transform: translateY(30px) scale(0.98); }
-    100% { opacity: 1; transform: translateY(0) scale(1); }
-  }
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  @keyframes pulseGlow {
-    0% { box-shadow: 0 0 0 0 rgba(58, 112, 54, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(58, 112, 54, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(58, 112, 54, 0); }
-  }
-  
-  .animate-slide-up { animation: slideUpFade 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-  .delay-1 { animation-delay: 0.1s; }
-  .delay-2 { animation-delay: 0.2s; }
-  .delay-3 { animation-delay: 0.3s; }
+/* ═══════════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════════ */
+@keyframes slideUpFade { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeIn      { from { opacity:0; } to { opacity:1; } }
+@keyframes spin        { to   { transform:rotate(360deg); } }
+@keyframes pulseGlow   {
+  0%   { box-shadow: 0 0 0 0 rgba(58,112,54,0.4); }
+  70%  { box-shadow: 0 0 0 12px rgba(58,112,54,0); }
+  100% { box-shadow: 0 0 0 0 rgba(58,112,54,0); }
+}
+@keyframes tabSwitch { from { opacity:0; transform:translateX(12px); } to { opacity:1; transform:translateX(0); } }
 
-  /* ══ Decorative Background ════════════════════════ */
-  .bg-elements {
-    position: fixed; inset: 0; pointer-events: none; z-index: 0;
-    overflow: hidden;
-  }
-  .bg-orb-1, .bg-orb-2 { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.5; }
-  .bg-orb-1 { top: -10%; right: -5%; width: 600px; height: 600px; background: rgba(168,213,162,0.3); }
-  .bg-orb-2 { bottom: -10%; left: -10%; width: 500px; height: 500px; background: rgba(90,155,84,0.15); }
+.anim-up { animation: slideUpFade 0.5s cubic-bezier(0.2,0.8,0.2,1) both; }
+.d1 { animation-delay: 0.08s; } .d2 { animation-delay: 0.16s; } .d3 { animation-delay: 0.24s; }
 
-  /* ══ Layout ═══════════════════════════════════════ */
-  .app-wrapper {
-    position: relative; z-index: 1;
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 0 24px;
-  }
+/* ═══════════════════════════════════════════════
+   BACKGROUND DECORATION
+═══════════════════════════════════════════════ */
+.bg-art {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+}
+.bg-orb { position: absolute; border-radius: 50%; filter: blur(90px); }
+.bg-orb-1 { top:-8%; right:-4%; width:550px; height:550px; background:rgba(168,213,162,0.25); }
+.bg-orb-2 { bottom:-10%; left:-8%; width:480px; height:480px; background:rgba(90,155,84,0.12); }
 
-  /* ══ Header ═══════════════════════════════════════ */
-  .header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 32px 0 32px;
-    animation: fadeIn 0.8s ease;
-  }
-  .logo { display: flex; align-items: center; gap: 14px; }
-  .logo-icon {
-    width: 48px; height: 48px;
-    background: linear-gradient(135deg, var(--green-main), var(--green-deep));
-    border-radius: 14px;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    box-shadow: var(--shadow-sm);
-  }
-  .logo-icon svg { width: 24px; height: 24px; fill: white; }
-  .logo-text {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 28px; font-weight: 600;
-    color: var(--green-deep); letter-spacing: -0.5px;
-  }
-  .logo-text span { color: var(--green-mid); }
-  .header-tagline { font-size: 14px; color: var(--text-muted); font-weight: 400; }
-  .header-badge {
-    display: inline-flex; align-items: center; gap: 8px;
-    background: var(--white);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow-sm);
-    border-radius: 20px;
-    padding: 8px 16px;
-    font-size: 13px; font-weight: 600;
-    color: var(--green-deep);
-    transition: var(--transition-bounce);
-  }
-  .header-badge:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+/* ═══════════════════════════════════════════════
+   APP SHELL — DESKTOP (sidebar layout)
+═══════════════════════════════════════════════ */
+.app-shell {
+  position: relative; z-index: 1;
+  display: flex; min-height: 100vh;
+}
 
-  /* ══ Main Grid ════════════════════════════════════ */
-  .main-grid {
-    display: grid;
-    grid-template-columns: 380px 1fr;
-    gap: 40px; align-items: start;
-    margin-bottom: 80px;
-  }
-  @media (max-width: 960px) {
-    .main-grid { grid-template-columns: 1fr; gap: 24px; }
-    .header { flex-direction: column; gap: 16px; text-align: center; }
-  }
+/* ── Sidebar ── */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--green-deep);
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
+  transition: var(--transition);
+  box-shadow: 4px 0 24px rgba(26,61,24,0.18);
+}
+.sidebar-logo {
+  padding: 28px 24px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.logo-icon {
+  width: 42px; height: 42px;
+  background: var(--green-mid);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+}
+.logo-icon svg { width: 22px; height: 22px; fill: white; }
+.logo-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 600;
+  color: white; letter-spacing: -0.3px;
+}
+.logo-name span { color: var(--green-light); }
+.logo-sub { font-size: 11px; color: rgba(255,255,255,0.45); font-weight: 400; margin-top: 2px; letter-spacing: 0.5px; }
 
-  /* ══ Form Card ════════════════════════════════════ */
-  .form-card {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(20px);
-    border-radius: var(--radius-xl);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    box-shadow: var(--shadow-md);
-    padding: 36px 32px;
-    position: sticky; top: 32px;
-    max-height: calc(100vh - 64px);
-    overflow-y: auto;
-    scrollbar-width: none; /* Hide scrollbar for cleaner look */
-  }
-  .form-card::-webkit-scrollbar { display: none; }
-  .form-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 26px; font-weight: 600;
-    color: var(--text-dark); margin-bottom: 8px;
-  }
-  .form-subtitle { font-size: 14px; color: var(--text-muted); margin-bottom: 32px; }
+.sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; }
+.nav-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 13px 16px; border-radius: var(--radius-sm);
+  cursor: pointer; transition: var(--transition);
+  color: rgba(255,255,255,0.55);
+  font-size: 14px; font-weight: 500;
+  border: none; background: none; width: 100%; text-align: left;
+  position: relative;
+}
+.nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); }
+.nav-item.active {
+  background: rgba(255,255,255,0.12);
+  color: white; font-weight: 700;
+}
+.nav-item.active::before {
+  content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 22px; background: var(--green-light); border-radius: 0 3px 3px 0;
+}
+.nav-icon { font-size: 18px; flex-shrink: 0; width: 22px; text-align: center; }
+.nav-badge {
+  margin-left: auto; font-size: 10px; font-weight: 800;
+  background: var(--green-mid); color: white;
+  padding: 2px 8px; border-radius: 20px; letter-spacing: 0.5px;
+}
 
-  /* ══ Form Elements ════════════════════════════════ */
-  .field-group { margin-bottom: 24px; }
-  .field-label {
-    display: block; font-size: 12px; font-weight: 700;
-    color: var(--text-mid); text-transform: uppercase;
-    letter-spacing: 0.8px; margin-bottom: 10px;
-  }
-  .field-row  { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sidebar-footer {
+  padding: 20px 16px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  font-size: 12px; color: rgba(255,255,255,0.3);
+  line-height: 1.5;
+}
+.sidebar-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 8px; padding: 8px 12px;
+  font-size: 12px; color: rgba(255,255,255,0.55);
+  margin-bottom: 10px; width: 100%;
+}
 
-  input[type="number"], input[type="text"], select, textarea {
-    width: 100%; padding: 0 16px;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--white); color: var(--text-dark);
-    font-family: 'DM Sans', sans-serif; font-size: 14px;
-    transition: var(--transition-smooth);
-    outline: none; -webkit-appearance: none;
-  }
-  input[type="number"], input[type="text"], select { height: 48px; }
-  textarea { padding: 14px 16px; resize: vertical; line-height: 1.5; height: 100px; }
-  
-  input[type="number"]:focus, input[type="text"]:focus, select:focus, textarea:focus {
-    border-color: var(--green-mid);
-    box-shadow: 0 0 0 4px rgba(90,155,84,0.1);
-    transform: translateY(-1px);
-  }
-  input[type="number"].error, select.error { border-color: #EF4444; box-shadow: 0 0 0 4px rgba(239,68,68,0.1); }
-  
-  select {
-    cursor: pointer;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238A9E87' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat; background-position: right 16px center; padding-right: 36px;
-  }
+/* ── Main Content Area ── */
+.main-area {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+}
 
-  /* ══ Toggle Buttons ═══════════════════════════════ */
-  .toggle-group { display: flex; gap: 8px; flex-wrap: wrap; }
-  .toggle-btn {
-    flex: 1; min-width: 70px; height: 44px;
-    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
-    background: var(--white); color: var(--text-mid);
-    font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
-    cursor: pointer; transition: var(--transition-bounce);
-    display: flex; align-items: center; justify-content: center; gap: 6px;
-  }
-  .toggle-btn:hover { border-color: var(--green-mid); color: var(--green-main); transform: translateY(-2px); }
-  .toggle-btn.active { 
-    background: var(--green-main); border-color: var(--green-main); color: white; 
-    box-shadow: var(--shadow-sm);
-  }
+.topbar {
+  height: var(--topbar-h);
+  background: rgba(254,251,243,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center;
+  padding: 0 36px;
+  position: sticky; top: 0; z-index: 50;
+  gap: 16px;
+}
+.topbar-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 600;
+  color: var(--text-dark);
+}
+.topbar-sub { font-size: 13px; color: var(--text-muted); margin-left: 12px; }
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.topbar-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 20px; padding: 6px 14px;
+  font-size: 12px; font-weight: 600; color: var(--green-deep);
+  box-shadow: var(--shadow-sm);
+}
 
-  /* ══ Activity Selector ════════════════════════════ */
-  .activity-card {
-    border: 1.5px solid var(--border); border-radius: var(--radius-md);
-    padding: 14px 16px; cursor: pointer; transition: var(--transition-bounce);
-    display: flex; align-items: center; gap: 12px; margin-bottom: 8px;
-    background: var(--white);
-  }
-  .activity-card:hover { border-color: var(--green-mid); transform: translateX(4px); }
-  .activity-card.active { border-color: var(--green-main); background: var(--green-pale); }
-  .activity-card.active .activity-dot { background: var(--green-main); box-shadow: 0 0 0 3px rgba(58,112,54,0.2); }
-  .activity-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--border); background: var(--cream-mid); transition: var(--transition-smooth); flex-shrink: 0; }
-  .activity-info { flex: 1; }
-  .activity-name { font-size: 14px; font-weight: 600; color: var(--text-dark); }
-  .activity-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-  .activity-mult { font-size: 13px; font-weight: 700; color: var(--green-mid); background: var(--green-pale); padding: 4px 8px; border-radius: 8px; }
+.page-content { flex: 1; padding: 36px; }
 
-  /* ══ Goal Selector ════════════════════════════════ */
-  .goal-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 24px; }
-  .goal-btn {
-    padding: 12px 8px;
-    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
-    background: var(--white); color: var(--text-mid);
-    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
-    cursor: pointer; transition: var(--transition-bounce); text-align: center;
-  }
-  .goal-btn:hover { border-color: var(--green-mid); color: var(--green-main); transform: translateY(-2px); }
-  .goal-btn.active { background: var(--green-main); border-color: var(--green-main); color: white; box-shadow: var(--shadow-sm); }
+/* Tab Pages */
+.tab-page { display: none; }
+.tab-page.active {
+  display: block;
+  animation: tabSwitch 0.35s cubic-bezier(0.2,0.8,0.2,1) both;
+}
 
-  .form-section-divider {
-    height: 1px; background: var(--border);
-    margin: 32px 0 24px; position: relative;
-  }
-  .form-section-divider::after {
-    content: attr(data-label);
-    position: absolute; top: 50%; left: 0;
-    transform: translateY(-50%);
-    background: rgba(255, 255, 255, 0.9); padding-right: 12px;
-    font-size: 11px; font-weight: 700; letter-spacing: 1px;
-    text-transform: uppercase; color: var(--green-mid);
-  }
+/* ═══════════════════════════════════════════════
+   MOBILE TOPBAR (hamburger)
+═══════════════════════════════════════════════ */
+.mobile-topbar {
+  display: none;
+  height: 60px;
+  background: var(--green-deep);
+  align-items: center;
+  padding: 0 20px;
+  position: sticky; top: 0; z-index: 200;
+  gap: 14px;
+}
+.mobile-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px; font-weight: 600;
+  color: white;
+}
+.mobile-logo span { color: var(--green-light); }
+.hamburger-btn {
+  background: none; border: none; cursor: pointer;
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 5px; padding: 4px; border-radius: 8px;
+  transition: background 0.2s;
+  margin-left: auto;
+}
+.hamburger-btn:hover { background: rgba(255,255,255,0.1); }
+.hamburger-btn span {
+  display: block; width: 20px; height: 2px;
+  background: white; border-radius: 2px;
+  transition: var(--transition);
+}
+.hamburger-btn.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger-btn.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.hamburger-btn.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-  /* ══ Submit Button ════════════════════════════════ */
-  .btn-calculate {
-    width: 100%; height: 56px;
-    background: linear-gradient(135deg, var(--green-mid), var(--green-deep));
-    color: white;
-    border: none; border-radius: var(--radius-md);
-    font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 700;
-    cursor: pointer; transition: var(--transition-bounce);
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    letter-spacing: 0.5px; margin-top: 32px;
-    box-shadow: var(--shadow-md);
-  }
-  .btn-calculate:hover { 
-    transform: translateY(-3px); 
-    box-shadow: 0 12px 24px rgba(42,80,40,0.25); 
-    background: linear-gradient(135deg, var(--green-main), var(--text-dark));
-  }
-  .btn-calculate:active { transform: translateY(0); }
-  .btn-calculate svg { width: 20px; height: 20px; fill: white; transition: transform 0.3s ease; }
-  .btn-calculate:hover svg { transform: translateX(4px); }
+/* Mobile Drawer Overlay */
+.drawer-overlay {
+  display: none; position: fixed; inset: 0; z-index: 150;
+  background: rgba(0,0,0,0.4); backdrop-filter: blur(2px);
+  animation: fadeIn 0.2s ease;
+}
+.drawer-overlay.open { display: block; }
 
-  .error-msg { font-size: 12px; color: #EF4444; margin-top: 6px; font-weight: 500; display: none; animation: fadeIn 0.3s ease; }
-  .error-msg.show { display: block; }
+/* Mobile Drawer Sidebar */
+.mobile-drawer {
+  position: fixed; top: 0; left: -100%; bottom: 0; z-index: 160;
+  width: 280px; background: var(--green-deep);
+  transition: left 0.35s cubic-bezier(0.4,0,0.2,1);
+  display: flex; flex-direction: column;
+  box-shadow: 8px 0 32px rgba(0,0,0,0.3);
+}
+.mobile-drawer.open { left: 0; }
 
-  /* ══ Right Panel ══════════════════════════════════ */
-  .results-panel { display: flex; flex-direction: column; gap: 32px; }
+/* ═══════════════════════════════════════════════
+   MOBILE BOTTOM TAB BAR
+═══════════════════════════════════════════════ */
+.bottom-tabbar {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  height: var(--btmbar-h);
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -4px 20px rgba(42,80,40,0.10);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.bottom-tabs {
+  display: flex; align-items: stretch;
+  height: 100%; padding: 6px 4px 4px;
+}
+.btab {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px;
+  cursor: pointer; background: none; border: none;
+  border-radius: var(--radius-sm); transition: var(--transition);
+  padding: 4px 2px; position: relative;
+}
+.btab:active { background: var(--green-pale); }
+.btab.active .btab-icon { color: var(--green-main); transform: scale(1.1); }
+.btab.active .btab-label { color: var(--green-main); font-weight: 700; }
+.btab.active::before {
+  content: ''; position: absolute; top: 0; left: 20%; right: 20%;
+  height: 3px; background: var(--green-main); border-radius: 0 0 3px 3px;
+}
+.btab-icon { font-size: 20px; color: var(--text-muted); transition: var(--transition); line-height: 1; }
+.btab-label { font-size: 10px; color: var(--text-muted); font-weight: 500; letter-spacing: 0.3px; white-space: nowrap; }
 
-  /* ══ Welcome State ════════════════════════════════ */
-  .welcome-state {
-    background: rgba(255, 255, 255, 0.8); border-radius: var(--radius-xl);
-    border: 1px solid rgba(255, 255, 255, 0.9); padding: 80px 40px; text-align: center;
-    box-shadow: var(--shadow-md); backdrop-filter: blur(10px);
-  }
-  .welcome-icon {
-    width: 80px; height: 80px; background: linear-gradient(135deg, var(--green-pale), var(--white));
-    border: 1px solid var(--border);
-    border-radius: 24px; box-shadow: var(--shadow-glow);
-    display: flex; align-items: center; justify-content: center; margin: 0 auto 24px;
-    animation: pulseGlow 3s infinite;
-  }
-  .welcome-icon svg { width: 40px; height: 40px; }
-  .welcome-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 32px; font-weight: 600; color: var(--text-dark); margin-bottom: 12px;
-  }
-  .welcome-body { font-size: 15px; color: var(--text-muted); line-height: 1.7; max-width: 400px; margin: 0 auto; }
-  .welcome-pills { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 32px; }
-  .welcome-pill {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: var(--white); border: 1px solid var(--border);
-    border-radius: 20px; padding: 8px 16px;
-    font-size: 13px; color: var(--green-deep); font-weight: 600;
-    box-shadow: var(--shadow-sm); transition: var(--transition-bounce);
-  }
-  .welcome-pill:hover { transform: translateY(-2px) scale(1.05); border-color: var(--green-light); }
+/* ═══════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+═══════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .sidebar, .topbar { display: none; }
+  .main-area { margin-left: 0; }
+  .mobile-topbar { display: flex; }
+  .bottom-tabbar { display: flex; }
+  .page-content { padding: 20px 16px calc(var(--btmbar-h) + 20px); }
+  .topbar-title, .topbar-sub, .topbar-right { display: none; }
+}
 
-  /* ══ Results Cards ════════════════════════════════ */
-  .results-content { display: none; flex-direction: column; gap: 32px; }
-  .results-content.show { display: flex; }
-  
-  .section-card {
-    background: var(--white); border-radius: var(--radius-xl);
-    border: 1px solid var(--border); padding: 36px;
-    box-shadow: var(--shadow-sm);
-    transition: var(--transition-smooth);
-  }
-  .section-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
-  
-  .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
-  .card-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 24px; font-weight: 600; color: var(--text-dark);
-  }
-  .card-badge {
-    font-size: 12px; font-weight: 700; letter-spacing: 0.8px;
-    text-transform: uppercase; padding: 6px 14px; border-radius: 20px;
-    background: var(--green-pale); color: var(--green-main);
-  }
+/* ═══════════════════════════════════════════════
+   CARDS & SHARED COMPONENTS
+═══════════════════════════════════════════════ */
+.card {
+  background: var(--white); border-radius: var(--radius-lg);
+  border: 1px solid var(--border); padding: 28px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.25s;
+}
+.card:hover { box-shadow: var(--shadow-md); }
+.card-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 600; color: var(--text-dark);
+  margin-bottom: 4px;
+}
+.card-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+.card-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.card-badge {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.8px;
+  text-transform: uppercase; padding: 5px 12px; border-radius: 20px;
+  background: var(--green-pale); color: var(--green-main);
+}
 
-  /* ══ Macro Summary ════════════════════════════════ */
-  .macro-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 36px; }
-  @media (max-width: 600px) { .macro-summary { grid-template-columns: repeat(2, 1fr); } }
-  .macro-tile {
-    background: var(--cream); border-radius: var(--radius-md);
-    padding: 20px 16px; text-align: center;
-    border: 1px solid var(--cream-mid); position: relative; overflow: hidden;
-    transition: var(--transition-bounce);
-  }
-  .macro-tile:hover { transform: translateY(-4px); box-shadow: var(--shadow-sm); background: var(--white); }
-  .macro-tile::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; border-radius: 4px 4px 0 0; }
-  .macro-tile.calories::before { background: var(--green-main); }
-  .macro-tile.protein::before  { background: #E07B39; }
-  .macro-tile.carbs::before    { background: #5B9ECD; }
-  .macro-tile.fats::before     { background: #D4A840; }
-  .macro-tile-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 8px; }
-  .macro-tile-value { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 600; color: var(--text-dark); line-height: 1; }
-  .macro-tile-unit  { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+/* Field Groups */
+.field-group { margin-bottom: 20px; }
+.field-label {
+  display: block; font-size: 11px; font-weight: 700;
+  color: var(--text-mid); text-transform: uppercase;
+  letter-spacing: 0.8px; margin-bottom: 8px;
+}
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 480px) { .field-row { grid-template-columns: 1fr; } }
 
-  /* ══ Chart ════════════════════════════════════════ */
-  .chart-row { display: grid; grid-template-columns: 220px 1fr; gap: 32px; align-items: center; }
-  @media (max-width: 600px) { .chart-row { grid-template-columns: 1fr; } }
-  .chart-wrap { position: relative; width: 200px; height: 200px; margin: 0 auto; transition: var(--transition-bounce); }
-  .chart-wrap:hover { transform: scale(1.05); }
-  .chart-center-label {
-    position: absolute; inset: 0;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center; pointer-events: none;
-  }
-  .chart-center-num { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 600; color: var(--text-dark); line-height: 1; }
-  .chart-center-sub { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px; }
-  .chart-legend { display: flex; flex-direction: column; gap: 16px; }
-  .legend-item { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: 8px; transition: background 0.2s; }
-  .legend-item:hover { background: var(--cream); }
-  .legend-swatch { width: 14px; height: 14px; border-radius: 4px; flex-shrink: 0; }
-  .legend-label { flex: 1; font-size: 14px; font-weight: 500; color: var(--text-mid); }
-  .legend-val { font-size: 15px; font-weight: 700; color: var(--text-dark); }
-  .legend-pct { font-size: 12px; color: var(--text-muted); min-width: 40px; text-align: right; font-weight: 600;}
+input[type="number"], input[type="text"], select, textarea {
+  width: 100%; padding: 0 14px;
+  border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--white); color: var(--text-dark);
+  font-family: 'DM Sans', sans-serif; font-size: 14px;
+  transition: var(--transition); outline: none; -webkit-appearance: none;
+}
+input[type="number"], input[type="text"], select { height: 46px; }
+textarea { padding: 12px 14px; resize: vertical; line-height: 1.5; height: 96px; }
+input:focus, select:focus, textarea:focus {
+  border-color: var(--green-mid);
+  box-shadow: 0 0 0 3px rgba(90,155,84,0.12);
+}
+input.err { border-color: #EF4444; }
+select {
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238A9E87' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;
+}
+.err-msg { font-size: 12px; color: #EF4444; margin-top: 5px; font-weight: 500; display: none; }
+.err-msg.show { display: block; }
 
-  /* ══ Micro Grid ═══════════════════════════════════ */
-  .micro-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 16px; }
-  .micro-tile { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 18px; transition: var(--transition-bounce); }
-  .micro-tile:hover { transform: translateY(-4px) scale(1.02); box-shadow: var(--shadow-md); border-color: var(--green-light); }
-  .micro-name  { font-size: 13px; font-weight: 700; color: var(--text-mid); margin-bottom: 6px; }
-  .micro-value { font-size: 22px; font-weight: 600; color: var(--text-dark); font-family: 'Cormorant Garamond', serif; }
-  .micro-unit  { font-size: 12px; color: var(--text-muted); }
-  .micro-bar-wrap { height: 6px; background: var(--cream-mid); border-radius: 6px; margin-top: 12px; overflow: hidden; }
-  .micro-bar-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--green-light), var(--green-main)); transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+/* Toggle Buttons */
+.toggle-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.toggle-btn {
+  flex: 1; min-width: 64px; height: 42px;
+  border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--white); color: var(--text-mid);
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: var(--bounce); display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.toggle-btn:hover { border-color: var(--green-mid); color: var(--green-main); }
+.toggle-btn.active { background: var(--green-main); border-color: var(--green-main); color: white; box-shadow: 0 2px 8px rgba(58,112,54,0.25); }
 
-  /* ══ BMR Info ═════════════════════════════════════ */
-  .bmr-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px; }
-  .bmr-item { background: var(--green-pale); border-radius: var(--radius-md); padding: 20px; text-align: center; border: 1px solid var(--green-light); transition: var(--transition-smooth); }
-  .bmr-item:hover { background: var(--white); box-shadow: var(--shadow-sm); transform: translateY(-2px); }
-  .bmr-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--green-main); font-weight: 700; margin-bottom: 8px; }
-  .bmr-val { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 600; color: var(--green-deep); }
-  .bmr-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+/* Activity Cards */
+.activity-card {
+  border: 1.5px solid var(--border); border-radius: var(--radius-md);
+  padding: 12px 16px; cursor: pointer; transition: var(--bounce);
+  display: flex; align-items: center; gap: 12px; margin-bottom: 8px;
+  background: var(--white);
+}
+.activity-card:hover { border-color: var(--green-mid); transform: translateX(3px); }
+.activity-card.active { border-color: var(--green-main); background: var(--green-pale); }
+.activity-card.active .a-dot { background: var(--green-main); box-shadow: 0 0 0 3px rgba(58,112,54,0.2); }
+.a-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--border); background: var(--cream-mid); transition: var(--transition); flex-shrink: 0; }
+.a-info { flex: 1; }
+.a-name { font-size: 14px; font-weight: 600; color: var(--text-dark); }
+.a-desc { font-size: 12px; color: var(--text-muted); }
+.a-mult { font-size: 12px; font-weight: 700; color: var(--green-mid); background: var(--green-pale); padding: 3px 8px; border-radius: 8px; }
 
-  /* [NEW] BMI visual display */
-  .bmi-display {
-    display: none; margin-top: 24px;
-    background: var(--white); border-radius: var(--radius-lg);
-    border: 1px solid var(--border); padding: 24px;
-    box-shadow: var(--shadow-sm);
-  }
-  .bmi-display.show { display: block; animation: fadeIn 0.5s ease; }
-  .bmi-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-  .bmi-title { font-size: 15px; font-weight: 700; color: var(--text-mid); }
-  .bmi-value-row { display: flex; align-items: baseline; gap: 10px; }
-  .bmi-number { font-family: 'Cormorant Garamond', serif; font-size: 38px; font-weight: 600; color: var(--text-dark); }
-  .bmi-category {
-    font-size: 13px; font-weight: 700; padding: 6px 14px;
-    border-radius: 20px; letter-spacing: 0.5px;
-  }
-  .bmi-bar-wrap { height: 10px; background: var(--cream-mid); border-radius: 10px; margin: 20px 0 12px; position: relative; }
-  .bmi-bar-track {
-    height: 100%; width: 100%; border-radius: 10px;
-    background: linear-gradient(90deg, #5B9ECD 0%, #5A9B54 25%, #D4A840 65%, #E07B39 85%, #E2534A 100%);
-  }
-  .bmi-bar-marker {
-    position: absolute; top: 50%; width: 16px; height: 16px;
-    background: var(--white); border-radius: 50%; border: 3px solid var(--text-dark);
-    transform: translate(-50%, -50%);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: left 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  .bmi-scale { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); font-weight: 500; }
-  .bmi-suggestion { font-size: 14px; color: var(--text-mid); margin-top: 16px; line-height: 1.6; padding: 12px; background: var(--cream); border-radius: var(--radius-sm); border-left: 3px solid var(--green-mid); }
+/* Goal Buttons */
+.goal-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.goal-btn {
+  padding: 10px 6px;
+  border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--white); color: var(--text-mid);
+  font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: var(--bounce); text-align: center;
+}
+.goal-btn:hover { border-color: var(--green-mid); color: var(--green-main); }
+.goal-btn.active { background: var(--green-main); border-color: var(--green-main); color: white; }
 
-  /* ══ Diet Plan ════════════════════════════════════ */
-  .btn-generate {
-    width: 100%; height: 56px;
-    border: 2px dashed var(--green-light); border-radius: var(--radius-md);
-    background: var(--green-pale); color: var(--green-main);
-    font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700;
-    cursor: pointer; transition: var(--transition-bounce);
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-  }
-  .btn-generate:hover { background: var(--white); border-color: var(--green-mid); border-style: solid; box-shadow: var(--shadow-md); transform: translateY(-2px); }
-  .btn-generate svg { width: 20px; height: 20px; }
-  .btn-generate.loading { opacity: 0.7; cursor: not-allowed; transform: none; }
-  .diet-plan-container { display: none; }
-  .diet-plan-container.show { display: block; animation: slideUpFade 0.5s ease both; }
-  .diet-loading { display: none; flex-direction: column; align-items: center; padding: 50px 0; gap: 20px; }
-  .diet-loading.show { display: flex; animation: fadeIn 0.3s ease; }
-  
-  .spinner { width: 40px; height: 40px; border: 4px solid var(--green-pale); border-top-color: var(--green-main); border-radius: 50%; animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  
-  .diet-loading-text { font-size: 15px; color: var(--text-mid); font-style: italic; font-weight: 500; }
-  .meal-grid { display: flex; flex-direction: column; gap: 16px; }
-  .meal-card { border-radius: var(--radius-md); border: 1px solid var(--border); overflow: hidden; background: var(--white); transition: var(--transition-smooth); }
-  .meal-card:hover { box-shadow: var(--shadow-md); border-color: var(--green-light); }
-  .meal-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: var(--cream); border-bottom: 1px solid var(--border); }
-  .meal-emoji { font-size: 20px; }
-  .meal-name  { font-weight: 700; font-size: 15px; color: var(--text-dark); }
-  .meal-body  { padding: 16px 20px; }
-  .meal-items { display: flex; flex-direction: column; gap: 8px; }
-  .meal-item  { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: var(--text-mid); line-height: 1.5; }
-  .meal-item::before { content: ''; width: 6px; height: 6px; background: var(--green-mid); border-radius: 50%; flex-shrink: 0; margin-top: 8px; }
-  .meal-macros { display: flex; gap: 12px; margin-top: 16px; }
-  .meal-macro-tag { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
-  .meal-macro-tag.cal { background: rgba(42,80,40,0.08); color: var(--green-deep); }
-  .meal-macro-tag.pro { background: rgba(224,123,57,0.1); color: #8B4513; }
+.divider { height: 1px; background: var(--border); margin: 24px 0; }
+.divider-label {
+  font-size: 11px; font-weight: 800; letter-spacing: 1.2px;
+  text-transform: uppercase; color: var(--green-mid); margin-bottom: 16px;
+}
 
-  /* ══ Formula / Note Blocks ════════════════════════ */
-  .formula-note {
-    background: var(--cream-dark); border-radius: var(--radius-sm);
-    padding: 16px 20px; font-size: 13px; color: var(--text-mid);
-    line-height: 1.7; border: 1px solid var(--cream-mid);
-  }
-  .formula-note strong { color: var(--text-dark); font-weight: 700; }
+/* Primary button */
+.btn-primary {
+  width: 100%; height: 52px;
+  background: linear-gradient(135deg, var(--green-mid), var(--green-deep));
+  color: white; border: none; border-radius: var(--radius-md);
+  font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: var(--bounce);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  margin-top: 24px; box-shadow: 0 4px 16px rgba(42,80,40,0.2);
+}
+.btn-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(42,80,40,0.28); }
+.btn-primary:active { transform: translateY(0); }
+.btn-primary svg { width: 18px; height: 18px; fill: white; transition: transform 0.3s; }
+.btn-primary:hover svg { transform: translateX(3px); }
 
-  /* ══ Tags ═════════════════════════════════════════ */
-  .tag { display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 700; margin-left: 8px; }
-  .tag-green { background: var(--green-pale); color: var(--green-main); }
-  .tag-new { background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; }
+/* Generate button */
+.btn-generate {
+  width: 100%; height: 52px;
+  border: 2px dashed var(--green-light); border-radius: var(--radius-md);
+  background: var(--green-pale); color: var(--green-main);
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: var(--bounce);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.btn-generate:hover { background: var(--white); border-color: var(--green-mid); border-style: solid; box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.btn-generate:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
 
-  .disclaimer { font-size: 13px; color: var(--text-muted); text-align: center; padding: 0 24px 40px; line-height: 1.6; max-width: 800px; margin: 0 auto; }
+/* Tool Buttons */
+.btn-tool {
+  width: 100%; height: 50px; border: none; border-radius: var(--radius-md);
+  font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: var(--bounce);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.btn-blue   { background: var(--tool-blue);   color: white; box-shadow: 0 4px 14px rgba(59,130,246,0.3); }
+.btn-blue:hover   { background: #2563EB; transform: translateY(-2px); }
+.btn-amber  { background: var(--tool-amber);  color: white; box-shadow: 0 4px 14px rgba(217,119,6,0.3); }
+.btn-amber:hover  { background: #B45309; transform: translateY(-2px); }
+.btn-violet { background: var(--tool-violet); color: white; box-shadow: 0 4px 14px rgba(124,58,237,0.3); }
+.btn-violet:hover { background: #6D28D9; transform: translateY(-2px); }
+.btn-tool:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 
-  /* ══════════════════════════════════════════════════
-     [NEW] FOOD AS MEDICINE INSIGHTS CARD
-  ══════════════════════════════════════════════════ */
-  .medicine-card { border-left: 6px solid var(--green-main); overflow: hidden; position: relative;}
-  .medicine-card::after { content: ''; position: absolute; top:0; right:0; width: 150px; height: 150px; background: radial-gradient(circle, var(--green-pale) 0%, transparent 70%); border-radius: 50%; opacity: 0.5; pointer-events: none;}
-  .medicine-card .card-title::before { content: '🌿 '; }
-  .medicine-key-foods { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
-  .food-pill {
-    background: var(--green-pale); border: 1px solid var(--green-light);
-    border-radius: 20px; padding: 6px 14px;
-    font-size: 13px; color: var(--green-deep); font-weight: 600;
-    transition: var(--transition-bounce);
-  }
-  .food-pill:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); }
-  .medicine-avoid-list { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
-  .avoid-pill {
-    background: #FEF2F2; border: 1px solid #FECACA;
-    border-radius: 20px; padding: 6px 14px;
-    font-size: 13px; color: #991B1B; font-weight: 600;
-  }
-  .medicine-tip {
-    background: linear-gradient(135deg, #FFFBEB, #F0FFF4);
-    border: 1px solid #FDE68A; border-radius: var(--radius-md);
-    padding: 16px 20px; font-size: 14px; color: var(--text-mid);
-    line-height: 1.6; font-weight: 500;
-  }
-  .medicine-tip strong { color: var(--brown); font-weight: 700;}
-  .medicine-sections { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-  .medicine-section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-dark); margin-bottom: 12px; }
-  @media (max-width: 600px) { .medicine-sections { grid-template-columns: 1fr; } }
+.spinner {
+  width: 22px; height: 22px;
+  border: 3px solid rgba(255,255,255,0.3); border-top-color: white;
+  border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; flex-shrink: 0;
+}
+.spinner-dark {
+  width: 32px; height: 32px;
+  border: 3px solid var(--green-pale); border-top-color: var(--green-main);
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+}
 
-  /* ══════════════════════════════════════════════════
-     [NEW] SEPARATE TOOLS SECTION (Visual Revamp)
-  ══════════════════════════════════════════════════ */
-  .tools-wrapper-full {
-    width: 100vw;
-    margin-left: calc(-50vw + 50%);
-    background: linear-gradient(180deg, var(--white) 0%, #F4F9F3 100%);
-    border-top: 1px solid var(--border);
-    padding: 80px 0 100px;
-    margin-top: 40px;
-  }
-  .tools-inner {
-    max-width: 1280px; margin: 0 auto; padding: 0 24px;
-  }
-  .tools-section-header { text-align: center; margin-bottom: 56px; animation: slideUpFade 0.6s ease; }
-  .tools-section-eyebrow {
-    font-size: 13px; font-weight: 800; letter-spacing: 2px;
-    text-transform: uppercase; color: var(--green-mid); margin-bottom: 12px;
-  }
-  .tools-section-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 42px; font-weight: 600; color: var(--text-dark); margin-bottom: 16px;
-  }
-  .tools-section-sub { font-size: 16px; color: var(--text-muted); max-width: 600px; margin: 0 auto; line-height: 1.6; }
+/* ═══════════════════════════════════════════════
+   MAIN PAGE — LAYOUT
+═══════════════════════════════════════════════ */
+.main-page-grid {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 32px; align-items: start;
+}
+@media (max-width: 1000px) { .main-page-grid { grid-template-columns: 1fr; } }
 
-  .tools-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 32px;
-  }
-  @media (max-width: 1024px) { .tools-grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 768px) { .tools-grid { grid-template-columns: 1fr; } }
+.form-sticky {
+  position: sticky; top: calc(var(--topbar-h) + 20px);
+  max-height: calc(100vh - var(--topbar-h) - 40px);
+  overflow-y: auto; scrollbar-width: none;
+}
+.form-sticky::-webkit-scrollbar { display: none; }
+@media (max-width: 768px) { .form-sticky { position: static; max-height: none; } }
 
-  .tool-card {
-    background: var(--white); border-radius: var(--radius-xl);
-    border: 1px solid var(--border); padding: 40px 32px;
-    display: flex; flex-direction: column;
-    box-shadow: var(--shadow-md);
-    transition: var(--transition-bounce);
-    position: relative; overflow: hidden;
-  }
-  .tool-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); }
-  .tool-card::before { content: ''; position: absolute; top:0; left:0; right:0; height: 6px; }
-  .tool-card.theme-blue::before { background: var(--tool-blue); }
-  .tool-card.theme-amber::before { background: var(--tool-amber); }
-  .tool-card.theme-violet::before { background: var(--tool-violet); }
+/* ═══════════════════════════════════════════════
+   WELCOME STATE
+═══════════════════════════════════════════════ */
+.welcome-box {
+  background: rgba(255,255,255,0.85); border-radius: var(--radius-xl);
+  border: 1px solid rgba(255,255,255,0.9); padding: 60px 32px; text-align: center;
+  box-shadow: var(--shadow-md); backdrop-filter: blur(10px);
+}
+.welcome-icon {
+  width: 72px; height: 72px; background: linear-gradient(135deg, var(--green-pale), var(--white));
+  border: 1px solid var(--border); border-radius: 20px;
+  display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;
+  animation: pulseGlow 3s infinite;
+}
+.welcome-icon svg { width: 36px; height: 36px; }
+.welcome-title { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 600; color: var(--text-dark); margin-bottom: 10px; }
+.welcome-body { font-size: 14px; color: var(--text-muted); line-height: 1.7; max-width: 380px; margin: 0 auto 24px; }
+.welcome-pills { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.wpill {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 20px; padding: 6px 14px;
+  font-size: 12px; color: var(--green-deep); font-weight: 600;
+  box-shadow: var(--shadow-sm); transition: var(--bounce);
+}
+.wpill:hover { transform: translateY(-2px); }
 
-  .tool-card-icon {
-    width: 64px; height: 64px; border-radius: 16px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 28px; margin-bottom: 24px; flex-shrink: 0;
-    box-shadow: var(--shadow-sm);
-  }
-  .tool-card-icon.blue   { background: #EFF6FF; }
-  .tool-card-icon.amber  { background: #FFFBEB; }
-  .tool-card-icon.violet { background: #F5F3FF; }
-  
-  .tool-card-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 26px; font-weight: 600; color: var(--text-dark); margin-bottom: 12px;
-  }
-  .tool-card-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 32px; line-height: 1.6; flex: 1; }
+/* ═══════════════════════════════════════════════
+   RESULTS
+═══════════════════════════════════════════════ */
+.results-stack { display: none; flex-direction: column; gap: 24px; }
+.results-stack.show { display: flex; }
 
-  /* ── Tool Button ── */
-  .btn-tool {
-    width: 100%; height: 52px;
-    border: none; border-radius: var(--radius-md);
-    font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700;
-    cursor: pointer; transition: var(--transition-bounce);
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    margin-top: auto;
-  }
-  .btn-tool.blue   { background: var(--tool-blue); color: white; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3); }
-  .btn-tool.blue:hover   { background: #2563EB; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4); }
-  .btn-tool.amber  { background: var(--tool-amber); color: white; box-shadow: 0 4px 14px rgba(217, 119, 6, 0.3); }
-  .btn-tool.amber:hover  { background: #B45309; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(217, 119, 6, 0.4); }
-  .btn-tool.violet { background: var(--tool-violet); color: white; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3); }
-  .btn-tool.violet:hover { background: #6D28D9; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4); }
-  .btn-tool:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; box-shadow: none !important;}
+/* Macro tiles */
+.macro-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px; }
+@media (max-width: 600px) { .macro-grid { grid-template-columns: repeat(2, 1fr); } }
+.mtile {
+  background: var(--cream); border-radius: var(--radius-md);
+  padding: 18px 14px; text-align: center; border: 1px solid var(--cream-mid);
+  position: relative; overflow: hidden; transition: var(--bounce);
+}
+.mtile:hover { transform: translateY(-3px); background: var(--white); box-shadow: var(--shadow-sm); }
+.mtile::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 3px 3px 0 0; }
+.mtile.m-cal::before { background: var(--green-main); }
+.mtile.m-pro::before { background: #E07B39; }
+.mtile.m-carb::before { background: #5B9ECD; }
+.mtile.m-fat::before  { background: #D4A840; }
+.mtile-lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 6px; }
+.mtile-val { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 600; color: var(--text-dark); line-height: 1; }
+.mtile-unit { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
 
-  /* ── Tool Result areas ── */
-  .tool-result {
-    display: none; margin-top: 24px;
-    border-top: 1px solid var(--border); padding-top: 24px;
-    animation: slideUpFade 0.4s ease both;
-  }
-  .tool-result.show { display: block; }
+/* Chart layout */
+.chart-layout { display: grid; grid-template-columns: 200px 1fr; gap: 28px; align-items: center; }
+@media (max-width: 580px) { .chart-layout { grid-template-columns: 1fr; } }
+.chart-wrap { position: relative; width: 180px; height: 180px; margin: 0 auto; }
+.chart-center {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  pointer-events: none;
+}
+.chart-center-num { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 600; color: var(--text-dark); }
+.chart-center-lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; }
+.legend { display: flex; flex-direction: column; gap: 12px; }
+.leg-item { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 8px; transition: background 0.2s; }
+.leg-item:hover { background: var(--cream); }
+.leg-sw { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+.leg-lbl { flex: 1; font-size: 13px; font-weight: 500; color: var(--text-mid); }
+.leg-val { font-size: 14px; font-weight: 700; color: var(--text-dark); }
+.leg-pct { font-size: 12px; color: var(--text-muted); min-width: 36px; text-align: right; }
 
-  /* ── Symptom tag selector ── */
-  .symptom-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; }
-  .symptom-tag {
-    padding: 8px 16px;
-    border: 1.5px solid var(--border);
-    border-radius: 24px; background: var(--white);
-    font-size: 13px; font-weight: 600; color: var(--text-mid);
-    cursor: pointer; transition: var(--transition-bounce); user-select: none;
-  }
-  .symptom-tag:hover { border-color: var(--tool-blue); color: var(--tool-blue); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
-  .symptom-tag.selected { background: #EFF6FF; border-color: var(--tool-blue); color: #1D4ED8; font-weight: 700; box-shadow: var(--shadow-sm); }
+/* BMR row */
+.bmr-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media (max-width: 480px) { .bmr-row { grid-template-columns: 1fr; } }
+.bmr-tile { background: var(--green-pale); border-radius: var(--radius-md); padding: 18px; text-align: center; border: 1px solid var(--green-light); transition: var(--transition); }
+.bmr-tile:hover { background: var(--white); box-shadow: var(--shadow-sm); }
+.bmr-lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--green-main); font-weight: 700; margin-bottom: 6px; }
+.bmr-val { font-family: 'Cormorant Garamond', serif; font-size: 24px; font-weight: 600; color: var(--green-deep); }
+.bmr-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
 
-  /* ── Deficiency result cards ── */
-  .deficiency-results { display: flex; flex-direction: column; gap: 16px; }
-  .deficiency-card {
-    background: var(--cream); border-radius: var(--radius-md);
-    border: 1px solid var(--border); padding: 16px 20px;
-    display: flex; gap: 16px; align-items: flex-start; transition: var(--transition-smooth);
-  }
-  .deficiency-card:hover { transform: translateX(4px); border-color: var(--tool-blue); background: var(--white); }
-  .deficiency-icon { font-size: 24px; flex-shrink: 0; margin-top: 2px; }
-  .deficiency-name { font-size: 15px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px; }
-  .deficiency-foods { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
-  .deficiency-food-tag { background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 20px; padding: 4px 12px; font-size: 12px; color: #1D4ED8; font-weight: 600; }
-  .deficiency-tip { font-size: 13px; color: var(--text-muted); font-style: italic; line-height: 1.5; }
-  
-  /* ── Tool Spinners ── */
-  .tool-spinner {
-    width: 22px; height: 22px;
-    border: 3px solid rgba(255,255,255,0.3);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-    display: inline-block;
-  }
-  
-  /* Additional UI tweaks for inner tool layouts excluded for brevity but inherited cleanly */
+/* BMI */
+.bmi-box { display: none; margin-top: 20px; background: var(--white); border-radius: var(--radius-md); border: 1px solid var(--border); padding: 20px; }
+.bmi-box.show { display: block; animation: fadeIn 0.4s ease; }
+.bmi-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px; }
+.bmi-num { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 600; color: var(--text-dark); }
+.bmi-cat { font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 20px; }
+.bmi-bar { height: 8px; background: var(--cream-mid); border-radius: 8px; position: relative; margin: 12px 0 8px; }
+.bmi-track { height: 100%; border-radius: 8px; background: linear-gradient(90deg,#5B9ECD 0%,#5A9B54 25%,#D4A840 65%,#E07B39 85%,#E2534A 100%); }
+.bmi-marker { position: absolute; top: 50%; width: 14px; height: 14px; background: var(--white); border-radius: 50%; border: 3px solid var(--text-dark); transform: translate(-50%,-50%); box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition: left 0.8s cubic-bezier(0.34,1.56,0.64,1); }
+.bmi-scale { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); font-weight: 500; }
+.bmi-note { font-size: 13px; color: var(--text-mid); margin-top: 12px; padding: 10px 14px; background: var(--cream); border-radius: 8px; border-left: 3px solid var(--green-mid); }
 
-  @media print {
-    .tools-wrapper-full > :not(.tool-card:last-child) { display: none; }
-    .btn-tool, .btn-print, .header-badge, .form-card { display: none; }
-  }
+/* Micro grid */
+.micro-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.microtile { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px; transition: var(--bounce); }
+.microtile:hover { transform: translateY(-3px) scale(1.02); box-shadow: var(--shadow-md); border-color: var(--green-light); }
+.microtile-name { font-size: 12px; font-weight: 700; color: var(--text-mid); margin-bottom: 4px; }
+.microtile-val { font-size: 20px; font-weight: 600; color: var(--text-dark); font-family: 'Cormorant Garamond', serif; }
+.microtile-unit { font-size: 11px; color: var(--text-muted); }
+.mbar-wrap { height: 4px; background: var(--cream-mid); border-radius: 4px; margin-top: 10px; overflow: hidden; }
+.mbar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--green-light), var(--green-main)); transition: width 1s cubic-bezier(0.4,0,0.2,1); }
+
+/* Medicine card */
+.med-card { border-left: 5px solid var(--green-main); display: none; }
+.med-card.show { display: block; }
+.med-sections { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 540px) { .med-sections { grid-template-columns: 1fr; } }
+.med-section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-dark); margin-bottom: 10px; }
+.food-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.food-pill {
+  background: var(--green-pale); border: 1px solid var(--green-light);
+  border-radius: 20px; padding: 5px 12px;
+  font-size: 12px; color: var(--green-deep); font-weight: 600;
+  transition: var(--bounce);
+}
+.food-pill:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+.avoid-pill { background: #FEF2F2; border: 1px solid #FECACA; border-radius: 20px; padding: 5px 12px; font-size: 12px; color: #991B1B; font-weight: 600; }
+.med-tip { background: linear-gradient(135deg,#FFFBEB,#F0FFF4); border: 1px solid #FDE68A; border-radius: var(--radius-md); padding: 14px 18px; font-size: 13px; color: var(--text-mid); line-height: 1.6; margin-top: 18px; }
+.med-tip strong { color: var(--brown); }
+
+/* Meal cards */
+.meal-grid { display: flex; flex-direction: column; gap: 12px; }
+.meal-card { border-radius: var(--radius-md); border: 1px solid var(--border); overflow: hidden; background: var(--white); }
+.meal-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px; background: var(--cream); border-bottom: 1px solid var(--border); }
+.meal-body { padding: 14px 18px; }
+.meal-items { display: flex; flex-direction: column; gap: 6px; }
+.meal-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--text-mid); line-height: 1.5; }
+.meal-item::before { content: ''; width: 5px; height: 5px; background: var(--green-mid); border-radius: 50%; flex-shrink: 0; margin-top: 8px; }
+.meal-tags { display: flex; gap: 8px; margin-top: 12px; }
+.mtag { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+.mtag-cal { background: rgba(42,80,40,0.08); color: var(--green-deep); }
+.mtag-pro { background: rgba(224,123,57,0.1); color: #8B4513; }
+
+.plan-note { background: var(--cream-dark); border-radius: var(--radius-sm); padding: 14px 18px; font-size: 13px; color: var(--text-mid); line-height: 1.7; border: 1px solid var(--cream-mid); margin-top: 20px; }
+
+/* ═══════════════════════════════════════════════
+   TOOLS PAGES
+═══════════════════════════════════════════════ */
+.tools-intro { margin-bottom: 28px; }
+.tools-intro h1 { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 600; color: var(--text-dark); margin-bottom: 6px; }
+.tools-intro p { font-size: 14px; color: var(--text-muted); }
+
+.tool-result-area { display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); animation: slideUpFade 0.35s ease both; }
+.tool-result-area.show { display: block; }
+
+/* Symptom tags */
+.symptom-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.sym-tag {
+  padding: 7px 14px; border: 1.5px solid var(--border); border-radius: 24px;
+  background: var(--white); font-size: 12px; font-weight: 600; color: var(--text-mid);
+  cursor: pointer; transition: var(--bounce); user-select: none;
+}
+.sym-tag:hover { border-color: var(--tool-blue); color: var(--tool-blue); transform: translateY(-1px); }
+.sym-tag.sel { background: #EFF6FF; border-color: var(--tool-blue); color: #1D4ED8; }
+
+/* Deficiency cards */
+.def-card {
+  background: var(--cream); border-radius: var(--radius-md); border: 1px solid var(--border);
+  padding: 14px 18px; display: flex; gap: 14px; margin-bottom: 12px; transition: var(--transition);
+}
+.def-card:hover { transform: translateX(3px); border-color: var(--tool-blue); background: var(--white); }
+.def-icon { font-size: 22px; flex-shrink: 0; }
+.def-name { font-size: 14px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px; }
+.def-foods { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.def-food-tag { background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 20px; padding: 3px 10px; font-size: 11px; color: #1D4ED8; font-weight: 600; }
+.def-tip { font-size: 12px; color: var(--text-muted); font-style: italic; line-height: 1.5; }
+
+/* Weekly table */
+.week-table-wrap { overflow-x: auto; background: var(--white); border-radius: var(--radius-md); border: 1px solid var(--border); }
+.week-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.week-table th { background: var(--tool-violet); color: white; padding: 14px 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; text-align: left; }
+.week-table td { padding: 14px 16px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.week-table tr:last-child td { border-bottom: none; }
+.week-table tr:hover td { background: var(--cream); }
+.td-head { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 5px; }
+
+.grocery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-top: 24px; }
+.grocery-cat { background: var(--white); border-radius: var(--radius-md); border: 1px solid var(--border); padding: 16px; }
+.grocery-cat-title { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-dark); margin-bottom: 12px; }
+.grocery-item { font-size: 13px; color: var(--text-mid); padding: 5px 0; border-bottom: 1px dashed var(--cream-mid); }
+
+.disclaimer { font-size: 12px; color: var(--text-muted); text-align: center; padding: 24px 0 8px; line-height: 1.6; }
+
+/* Info note */
+.info-note { background: var(--green-pale); border: 1px solid var(--green-light); border-radius: var(--radius-sm); padding: 12px 16px; font-size: 13px; color: var(--green-deep); margin-bottom: 16px; }
+
+/* Meal improver result items */
+.improv-item { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; display: flex; gap: 10px; }
+.improv-issue { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
+.priority-tag { font-size: 10px; font-weight: 700; letter-spacing: 1px; padding: 3px 10px; border-radius: 16px; background: #FEF3C7; color: #92400E; text-transform: uppercase; display: inline-block; margin-bottom: 6px; }
+.missing-tag { background: #F5F3FF; border: 1px solid #E6D5FF; border-radius: 20px; padding: 5px 12px; font-size: 12px; color: #6D28D9; font-weight: 600; display: inline-block; margin: 4px; }
 </style>
 </head>
 <body>
-  
-<div class="bg-elements">
-  <div class="bg-orb-1"></div>
-  <div class="bg-orb-2"></div>
+
+<div class="bg-art">
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
 </div>
 
-<div class="app-wrapper">
+<!-- Mobile Top Bar -->
+<div class="mobile-topbar">
+  <div class="mobile-logo">Nutri<span>Plan</span></div>
+  <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleDrawer()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</div>
 
-  <header class="header">
-    <div class="logo">
+<!-- Mobile Drawer Overlay -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<!-- Mobile Drawer -->
+<div class="mobile-drawer" id="mobileDrawer">
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M17 8C8 10 5.9 16.17 3.82 19.82C4.78 18 6.68 16.71 8.82 17.82C10.85 18.88 12.94 19.97 17 19C21 18 22 15 22 12C22 7 18 4 12 4C7.5 4 4 6.5 4 6.5C4 6.5 8 6 10 8C12 10 9 13 9 13C9 13 11 8 17 8Z"/></svg>
+    </div>
+    <div class="logo-name">Nutri<span>Plan</span></div>
+    <div class="logo-sub">Therapeutic Nutrition Intelligence</div>
+  </div>
+  <nav class="sidebar-nav" id="mobileNav">
+    <button class="nav-item active" onclick="switchTab('home', this, true)">
+      <span class="nav-icon">🏠</span> Home & Calculator
+      <span class="nav-badge">CORE</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('deficiency', this, true)">
+      <span class="nav-icon">🔬</span> Deficiency Detector
+    </button>
+    <button class="nav-item" onclick="switchTab('improver', this, true)">
+      <span class="nav-icon">🍱</span> Meal Improver
+    </button>
+    <button class="nav-item" onclick="switchTab('weekly', this, true)">
+      <span class="nav-icon">📅</span> Weekly Planner
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="sidebar-badge">🌿 Indian Food Architecture</div>
+    NutriPlan — Therapeutic Nutrition Intelligence. Always consult a registered clinician.
+  </div>
+</div>
+
+<!-- App Shell -->
+<div class="app-shell">
+
+  <!-- Desktop Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
       <div class="logo-icon">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M17 8C8 10 5.9 16.17 3.82 19.82C4.78 18 6.68 16.71 8.82 17.82C10.85 18.88 12.94 19.97 17 19C21 18 22 15 22 12C22 7 18 4 12 4C7.5 4 4 6.5 4 6.5C4 6.5 8 6 10 8C12 10 9 13 9 13C9 13 11 8 17 8Z"/>
-        </svg>
+        <svg viewBox="0 0 24 24"><path d="M17 8C8 10 5.9 16.17 3.82 19.82C4.78 18 6.68 16.71 8.82 17.82C10.85 18.88 12.94 19.97 17 19C21 18 22 15 22 12C22 7 18 4 12 4C7.5 4 4 6.5 4 6.5C4 6.5 8 6 10 8C12 10 9 13 9 13C9 13 11 8 17 8Z"/></svg>
       </div>
-      <div>
-        <div class="logo-text">Nutri<span>Plan</span></div>
-        <div class="header-tagline">Therapeutic Nutrition Intelligence</div>
+      <div class="logo-name">Nutri<span>Plan</span></div>
+      <div class="logo-sub">Therapeutic Nutrition Intelligence</div>
+    </div>
+    <nav class="sidebar-nav" id="desktopNav">
+      <button class="nav-item active" onclick="switchTab('home', this, false)">
+        <span class="nav-icon">🏠</span> Home & Calculator
+        <span class="nav-badge">CORE</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('deficiency', this, false)">
+        <span class="nav-icon">🔬</span> Deficiency Detector
+      </button>
+      <button class="nav-item" onclick="switchTab('improver', this, false)">
+        <span class="nav-icon">🍱</span> Meal Improver
+      </button>
+      <button class="nav-item" onclick="switchTab('weekly', this, false)">
+        <span class="nav-icon">📅</span> Weekly Planner
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-badge">🌿 Indian Food Architecture</div>
+      Always consult a registered clinician for medical protocols.
+    </div>
+  </aside>
+
+  <!-- Main Area -->
+  <div class="main-area">
+
+    <!-- Desktop Topbar -->
+    <div class="topbar">
+      <div class="topbar-title" id="topbarTitle">Home & Calculator</div>
+      <span class="topbar-sub" id="topbarSub">Calibrate metabolic parameters</span>
+      <div class="topbar-right">
+        <div class="topbar-chip">🌿 Indian Food Architecture</div>
       </div>
     </div>
-    <div class="header-badge">🌿 Indian Food Architecture</div>
-  </header>
 
-  <div class="main-grid">
+    <div class="page-content">
 
-    <aside class="form-card animate-slide-up">
-      <div class="form-title">Patient Profile</div>
-      <div class="form-subtitle">Calibrate your base metabolic parameters</div>
+      <!-- ════════════════════════════════════
+           TAB: HOME (Calculator + Diet Plan)
+      ════════════════════════════════════ -->
+      <div class="tab-page active" id="tab-home">
+        <div class="main-page-grid">
 
-      <div class="field-group">
-        <label class="field-label">Biological sex</label>
-        <div class="toggle-group">
-          <button class="toggle-btn active" data-field="gender" data-value="male" onclick="selectToggle('gender',this,'male')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M9 9c0-2.76 2.24-5 5-5s5 2.24 5 5-2.24 5-5 5-5-2.24-5-5zm5-7C9.93 2 7 4.93 7 8.5c0 3.09 2.11 5.7 5 6.36V17H9v2h3v2h2v-2h3v-2h-3v-2.14c2.89-.66 5-3.27 5-6.36C19 4.93 16.07 2 14 2z"/></svg>
-            Male
-          </button>
-          <button class="toggle-btn" data-field="gender" data-value="female" onclick="selectToggle('gender',this,'female')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C9.24 2 7 4.24 7 7c0 2.57 1.92 4.7 4.41 4.96L11 13H9v2h2v2h2v-2h2v-2h-2l-.41-1.04C15.08 11.7 17 9.57 17 7c0-2.76-2.24-5-5-5zm0 2c1.65 0 3 1.35 3 3s-1.35 3-3 3-3-1.35-3-3 1.35-3 3-3z"/></svg>
-            Female
-          </button>
-        </div>
-      </div>
+          <!-- LEFT: Form -->
+          <div class="form-sticky">
+            <div class="card anim-up">
+              <div class="card-title">Patient Profile</div>
+              <div class="card-sub">Calibrate your base metabolic parameters</div>
 
-      <div class="field-group">
-        <div class="field-row">
-          <div>
-            <label class="field-label">Age (years)</label>
-            <input type="number" id="age" min="10" max="100" placeholder="e.g. 28" oninput="clearError('age')">
-            <div class="error-msg" id="age-err">Valid age: 10–100</div>
-          </div>
-          <div>
-            <label class="field-label">Weight</label>
-            <input type="number" id="weight" min="1" max="500" placeholder="e.g. 70" step="0.1" oninput="clearError('weight')">
-            <div class="error-msg" id="weight-err">Valid weight needed</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="field-group">
-        <div class="field-row">
-          <div>
-            <label class="field-label">Height <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
-            <input type="number" id="height" min="50" max="300" placeholder="e.g. 175" step="0.1">
-          </div>
-          <div>
-            <label class="field-label">Units</label>
-            <select id="units" onchange="updateUnitLabels()">
-              <option value="metric">Metric (kg / cm)</option>
-              <option value="imperial">Imperial (lbs / in)</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div class="field-group">
-        <label class="field-label">Activity Level</label>
-        <div class="activity-card active" onclick="selectActivity(this, 'sedentary')">
-          <div class="activity-dot"></div>
-          <div class="activity-info">
-            <div class="activity-name">Sedentary</div>
-            <div class="activity-desc">Desk job, little/no exercise</div>
-          </div>
-          <div class="activity-mult">×1.2</div>
-        </div>
-        <div class="activity-card" onclick="selectActivity(this, 'moderate')">
-          <div class="activity-dot"></div>
-          <div class="activity-info">
-            <div class="activity-name">Moderately Active</div>
-            <div class="activity-desc">Exercise 3–5 days/week</div>
-          </div>
-          <div class="activity-mult">×1.55</div>
-        </div>
-        <div class="activity-card" onclick="selectActivity(this, 'active')">
-          <div class="activity-dot"></div>
-          <div class="activity-info">
-            <div class="activity-name">Very Active</div>
-            <div class="activity-desc">Daily hard exercise / physical job</div>
-          </div>
-          <div class="activity-mult">×1.725</div>
-        </div>
-      </div>
-
-      <div class="field-group">
-        <label class="field-label">Goal</label>
-        <div class="goal-group">
-          <button class="goal-btn" data-goal="lose" onclick="selectGoal(this,'lose')">↓ Lose Weight</button>
-          <button class="goal-btn active" data-goal="maintain" onclick="selectGoal(this,'maintain')">◎ Maintain</button>
-          <button class="goal-btn" data-goal="gain" onclick="selectGoal(this,'gain')">↑ Build Muscle</button>
-        </div>
-      </div>
-
-      <div class="form-section-divider" data-label="Therapeutic Vectors"></div>
-
-      <div class="field-group">
-        <label class="field-label">Health Condition <span class="tag tag-new">CORE</span></label>
-        <select id="condition" onchange="state.condition = this.value">
-          <option value="none">None / General Health</option>
-          <option value="diabetes">Diabetes (Type 2)</option>
-          <option value="hypertension">Hypertension (High BP)</option>
-          <option value="anemia">Anemia / Iron Deficiency</option>
-          <option value="pcos">PCOS / Hormonal Balance</option>
-          <option value="general">General Fitness</option>
-        </select>
-      </div>
-
-      <div class="field-group">
-        <div class="field-row">
-          <div>
-            <label class="field-label">Dietary Frame</label>
-            <div class="toggle-group">
-              <button class="toggle-btn active" data-field="foodPref" data-value="veg" onclick="selectToggle('foodPref',this,'veg')">🌱 Veg</button>
-              <button class="toggle-btn" data-field="foodPref" data-value="nonveg" onclick="selectToggle('foodPref',this,'nonveg')">🍳 Omni</button>
-            </div>
-          </div>
-          <div>
-            <label class="field-label">Cost Tier</label>
-            <div class="toggle-group">
-              <button class="toggle-btn active" data-field="budget" data-value="low" onclick="selectToggle('budget',this,'low')">₹ Low</button>
-              <button class="toggle-btn" data-field="budget" data-value="medium" onclick="selectToggle('budget',this,'medium')">₹₹ Med</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <button class="btn-calculate" onclick="calculate()">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
-        Execute NutriPlan Sequence
-      </button>
-    </aside>
-
-    <main class="results-panel">
-
-      <div class="welcome-state animate-slide-up delay-1" id="welcomeState">
-        <div class="welcome-icon">
-          <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="24" cy="24" r="20" fill="#A8D5A2" opacity="0.4"/>
-            <path d="M24 14C18.48 14 14 18.48 14 24s4.48 10 10 10 10-4.48 10-10S29.52 14 24 14zm1 17h-2v-6h2v6zm0-8h-2v-2h2v2z" fill="#3A7036"/>
-            <path d="M30 8C22 10 19.9 16.17 17.82 19.82C18.78 18 20.68 16.71 22.82 17.82C24.85 18.88 26.94 19.97 31 19C35 18 36 15 36 12C36 7 32 4 26 4C21.5 4 18 6.5 18 6.5C18 6.5 22 6 24 8C26 10 23 13 23 13C23 13 25 8 31 8z" fill="#3A7036" opacity="0.6"/>
-          </svg>
-        </div>
-        <div class="welcome-title">System Ready</div>
-        <div class="welcome-body">
-          Input base biological parameters to initialize personalized therapeutic nutrition architecture. Grounded in clinical formulas and Indian food wisdom.
-        </div>
-        <div class="welcome-pills">
-          <span class="welcome-pill">🩸 Metabolic Mapping</span>
-          <span class="welcome-pill">🌸 Endocrine Support</span>
-          <span class="welcome-pill">🫀 Hematological Recovery</span>
-        </div>
-      </div>
-
-      <div class="results-content" id="resultsContent">
-
-        <div class="section-card animate-slide-up delay-1">
-          <div class="card-header">
-            <div class="card-title">Macronutrient Architecture</div>
-            <div class="card-badge" id="goalBadge">Maintain Weight</div>
-          </div>
-          <div class="macro-summary">
-            <div class="macro-tile calories">
-              <div class="macro-tile-label">Energy Target</div>
-              <div class="macro-tile-value" id="calVal">—</div>
-              <div class="macro-tile-unit">kcal/day</div>
-            </div>
-            <div class="macro-tile protein">
-              <div class="macro-tile-label">Protein</div>
-              <div class="macro-tile-value" id="proVal">—</div>
-              <div class="macro-tile-unit">grams/day</div>
-            </div>
-            <div class="macro-tile carbs">
-              <div class="macro-tile-label">Carbs</div>
-              <div class="macro-tile-value" id="carbVal">—</div>
-              <div class="macro-tile-unit">grams/day</div>
-            </div>
-            <div class="macro-tile fats">
-              <div class="macro-tile-label">Lipids</div>
-              <div class="macro-tile-value" id="fatVal">—</div>
-              <div class="macro-tile-unit">grams/day</div>
-            </div>
-          </div>
-          <div class="chart-row">
-            <div>
-              <div class="chart-wrap">
-                <canvas id="macroChart" role="img" aria-label="Macro distribution doughnut chart"></canvas>
-                <div class="chart-center-label">
-                  <div class="chart-center-num" id="chartCenterCal">—</div>
-                  <div class="chart-center-sub">kcal</div>
+              <div class="field-group">
+                <label class="field-label">Biological Sex</label>
+                <div class="toggle-group">
+                  <button class="toggle-btn active" data-field="gender" data-value="male" onclick="selectToggle('gender',this,'male')">♂ Male</button>
+                  <button class="toggle-btn" data-field="gender" data-value="female" onclick="selectToggle('gender',this,'female')">♀ Female</button>
                 </div>
               </div>
-            </div>
-            <div class="chart-legend">
-              <div class="legend-item">
-                <div class="legend-swatch" style="background:#3A7036"></div>
-                <div class="legend-label">Protein Target</div>
-                <div class="legend-val" id="legPro">—g</div>
-                <div class="legend-pct" id="legProPct">—%</div>
+
+              <div class="field-group">
+                <div class="field-row">
+                  <div>
+                    <label class="field-label">Age (years)</label>
+                    <input type="number" id="age" min="10" max="100" placeholder="e.g. 28" oninput="clearErr('age')">
+                    <div class="err-msg" id="age-err">Valid age: 10–100</div>
+                  </div>
+                  <div>
+                    <label class="field-label">Weight</label>
+                    <input type="number" id="weight" min="1" max="500" placeholder="e.g. 70" step="0.1" oninput="clearErr('weight')">
+                    <div class="err-msg" id="weight-err">Enter a valid weight</div>
+                  </div>
+                </div>
               </div>
-              <div class="legend-item">
-                <div class="legend-swatch" style="background:#5B9ECD"></div>
-                <div class="legend-label">Carbohydrate Load</div>
-                <div class="legend-val" id="legCarb">—g</div>
-                <div class="legend-pct" id="legCarbPct">—%</div>
+
+              <div class="field-group">
+                <div class="field-row">
+                  <div>
+                    <label class="field-label">Height <span style="font-weight:400;text-transform:none;letter-spacing:0;">(optional)</span></label>
+                    <input type="number" id="height" min="50" max="300" placeholder="e.g. 175" step="0.1">
+                  </div>
+                  <div>
+                    <label class="field-label">Units</label>
+                    <select id="units" onchange="updateUnitLabels()">
+                      <option value="metric">Metric (kg / cm)</option>
+                      <option value="imperial">Imperial (lbs / in)</option>
+                    </select>
+                  </div>
+                </div>
               </div>
-              <div class="legend-item">
-                <div class="legend-swatch" style="background:#D4A840"></div>
-                <div class="legend-label">Essential Fats</div>
-                <div class="legend-val" id="legFat">—g</div>
-                <div class="legend-pct" id="legFatPct">—%</div>
+
+              <div class="field-group">
+                <label class="field-label">Activity Level</label>
+                <div class="activity-card active" onclick="selectActivity(this,'sedentary')">
+                  <div class="a-dot"></div>
+                  <div class="a-info"><div class="a-name">Sedentary</div><div class="a-desc">Desk job, little exercise</div></div>
+                  <div class="a-mult">×1.2</div>
+                </div>
+                <div class="activity-card" onclick="selectActivity(this,'moderate')">
+                  <div class="a-dot"></div>
+                  <div class="a-info"><div class="a-name">Moderately Active</div><div class="a-desc">Exercise 3–5 days/week</div></div>
+                  <div class="a-mult">×1.55</div>
+                </div>
+                <div class="activity-card" onclick="selectActivity(this,'active')">
+                  <div class="a-dot"></div>
+                  <div class="a-info"><div class="a-name">Very Active</div><div class="a-desc">Daily hard exercise / physical job</div></div>
+                  <div class="a-mult">×1.725</div>
+                </div>
               </div>
-              <div class="legend-item">
-                <div class="legend-swatch" style="background:#C0C0B8"></div>
-                <div class="legend-label">Dietary Fiber</div>
-                <div class="legend-val" id="legFiber">—g</div>
-                <div class="legend-pct" style="color:transparent">—</div>
+
+              <div class="field-group">
+                <label class="field-label">Goal</label>
+                <div class="goal-group">
+                  <button class="goal-btn" onclick="selectGoal(this,'lose')">↓ Lose</button>
+                  <button class="goal-btn active" onclick="selectGoal(this,'maintain')">◎ Maintain</button>
+                  <button class="goal-btn" onclick="selectGoal(this,'gain')">↑ Build</button>
+                </div>
               </div>
+
+              <div class="divider"></div>
+              <div class="divider-label">Therapeutic Vectors</div>
+
+              <div class="field-group">
+                <label class="field-label">Health Condition</label>
+                <select id="condition" onchange="state.condition = this.value">
+                  <option value="none">None / General Health</option>
+                  <option value="diabetes">Diabetes (Type 2)</option>
+                  <option value="hypertension">Hypertension (High BP)</option>
+                  <option value="anemia">Anemia / Iron Deficiency</option>
+                  <option value="pcos">PCOS / Hormonal Balance</option>
+                  <option value="general">General Fitness</option>
+                </select>
+              </div>
+
+              <div class="field-group">
+                <div class="field-row">
+                  <div>
+                    <label class="field-label">Dietary Frame</label>
+                    <div class="toggle-group">
+                      <button class="toggle-btn active" data-field="foodPref" data-value="veg" onclick="selectToggle('foodPref',this,'veg')">🌱 Veg</button>
+                      <button class="toggle-btn" data-field="foodPref" data-value="nonveg" onclick="selectToggle('foodPref',this,'nonveg')">🍳 Omni</button>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="field-label">Cost Tier</label>
+                    <div class="toggle-group">
+                      <button class="toggle-btn active" data-field="budget" data-value="low" onclick="selectToggle('budget',this,'low')">₹ Low</button>
+                      <button class="toggle-btn" data-field="budget" data-value="medium" onclick="selectToggle('budget',this,'medium')">₹₹ Med</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <button class="btn-primary" onclick="calculate()">
+                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
+                Execute NutriPlan Sequence
+              </button>
             </div>
           </div>
+
+          <!-- RIGHT: Results -->
+          <div>
+
+            <!-- Welcome state -->
+            <div class="welcome-box anim-up d1" id="welcomeState">
+              <div class="welcome-icon">
+                <svg viewBox="0 0 48 48" fill="none">
+                  <circle cx="24" cy="24" r="20" fill="#A8D5A2" opacity="0.4"/>
+                  <path d="M24 14C18.48 14 14 18.48 14 24s4.48 10 10 10 10-4.48 10-10S29.52 14 24 14zm1 17h-2v-6h2v6zm0-8h-2v-2h2v2z" fill="#3A7036"/>
+                  <path d="M30 8C22 10 19.9 16.17 17.82 19.82C18.78 18 20.68 16.71 22.82 17.82C24.85 18.88 26.94 19.97 31 19C35 18 36 15 36 12C36 7 32 4 26 4C21.5 4 18 6.5 18 6.5C18 6.5 22 6 24 8C26 10 23 13 23 13C23 13 25 8 31 8z" fill="#3A7036" opacity="0.6"/>
+                </svg>
+              </div>
+              <div class="welcome-title">System Ready</div>
+              <div class="welcome-body">Fill in your biological parameters on the left to initialize personalized therapeutic nutrition architecture.</div>
+              <div class="welcome-pills">
+                <span class="wpill">🩸 Metabolic Mapping</span>
+                <span class="wpill">🌸 Endocrine Support</span>
+                <span class="wpill">🫀 Hematological Recovery</span>
+              </div>
+            </div>
+
+            <!-- Results -->
+            <div class="results-stack" id="resultsContent">
+
+              <!-- Macros card -->
+              <div class="card anim-up d1">
+                <div class="card-header-row">
+                  <div class="card-title">Macronutrient Architecture</div>
+                  <div class="card-badge" id="goalBadge">Maintain</div>
+                </div>
+                <div class="macro-grid">
+                  <div class="mtile m-cal">
+                    <div class="mtile-lbl">Energy</div>
+                    <div class="mtile-val" id="calVal">—</div>
+                    <div class="mtile-unit">kcal/day</div>
+                  </div>
+                  <div class="mtile m-pro">
+                    <div class="mtile-lbl">Protein</div>
+                    <div class="mtile-val" id="proVal">—</div>
+                    <div class="mtile-unit">g/day</div>
+                  </div>
+                  <div class="mtile m-carb">
+                    <div class="mtile-lbl">Carbs</div>
+                    <div class="mtile-val" id="carbVal">—</div>
+                    <div class="mtile-unit">g/day</div>
+                  </div>
+                  <div class="mtile m-fat">
+                    <div class="mtile-lbl">Lipids</div>
+                    <div class="mtile-val" id="fatVal">—</div>
+                    <div class="mtile-unit">g/day</div>
+                  </div>
+                </div>
+                <div class="chart-layout">
+                  <div>
+                    <div class="chart-wrap">
+                      <canvas id="macroChart" aria-label="Macro distribution"></canvas>
+                      <div class="chart-center">
+                        <div class="chart-center-num" id="chartCal">—</div>
+                        <div class="chart-center-lbl">kcal</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="legend">
+                    <div class="leg-item">
+                      <div class="leg-sw" style="background:#3A7036"></div>
+                      <div class="leg-lbl">Protein</div>
+                      <div class="leg-val" id="legPro">—g</div>
+                      <div class="leg-pct" id="legProPct">—%</div>
+                    </div>
+                    <div class="leg-item">
+                      <div class="leg-sw" style="background:#5B9ECD"></div>
+                      <div class="leg-lbl">Carbohydrates</div>
+                      <div class="leg-val" id="legCarb">—g</div>
+                      <div class="leg-pct" id="legCarbPct">—%</div>
+                    </div>
+                    <div class="leg-item">
+                      <div class="leg-sw" style="background:#D4A840"></div>
+                      <div class="leg-lbl">Fats</div>
+                      <div class="leg-val" id="legFat">—g</div>
+                      <div class="leg-pct" id="legFatPct">—%</div>
+                    </div>
+                    <div class="leg-item">
+                      <div class="leg-sw" style="background:#C0C0B8"></div>
+                      <div class="leg-lbl">Fiber</div>
+                      <div class="leg-val" id="legFiber">—g</div>
+                      <div class="leg-pct" style="color:transparent">—</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Metabolic Diagnostics -->
+              <div class="card anim-up d2">
+                <div class="card-header-row">
+                  <div class="card-title">Metabolic Diagnostics</div>
+                  <div class="card-badge">Mifflin-St Jeor</div>
+                </div>
+                <div class="bmr-row">
+                  <div class="bmr-tile">
+                    <div class="bmr-lbl">Base BMR</div>
+                    <div class="bmr-val" id="bmrVal">—</div>
+                    <div class="bmr-sub">Resting expenditure</div>
+                  </div>
+                  <div class="bmr-tile">
+                    <div class="bmr-lbl">Active TDEE</div>
+                    <div class="bmr-val" id="tdeeVal">—</div>
+                    <div class="bmr-sub">With activity multiplier</div>
+                  </div>
+                  <div class="bmr-tile">
+                    <div class="bmr-lbl">Final Target</div>
+                    <div class="bmr-val" id="targetVal">—</div>
+                    <div class="bmr-sub">Goal adjusted vector</div>
+                  </div>
+                </div>
+                <div class="bmi-box" id="bmiDisplay">
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                    <span style="font-size:14px;font-weight:700;color:var(--text-mid);">BMI Index</span>
+                    <span class="bmi-cat" id="bmiCat">—</span>
+                  </div>
+                  <div class="bmi-row">
+                    <div class="bmi-num" id="bmiNum">—</div>
+                    <span style="font-size:13px;color:var(--text-muted)">kg/m²</span>
+                  </div>
+                  <div class="bmi-bar"><div class="bmi-track"></div><div class="bmi-marker" id="bmiMarker"></div></div>
+                  <div class="bmi-scale">
+                    <span>Underweight<br>&lt;18.5</span>
+                    <span style="text-align:center">Optimal<br>18.5–24.9</span>
+                    <span style="text-align:right">Obese<br>≥30</span>
+                  </div>
+                  <div class="bmi-note" id="bmiNote"></div>
+                </div>
+              </div>
+
+              <!-- Micronutrients -->
+              <div class="card anim-up d3">
+                <div class="card-header-row">
+                  <div class="card-title">Micronutrient Baseline</div>
+                  <div class="card-badge">DRI Standard</div>
+                </div>
+                <div class="micro-grid" id="microGrid"></div>
+              </div>
+
+              <!-- Therapeutic card -->
+              <div class="card med-card" id="medicineCard">
+                <div class="card-header-row">
+                  <div class="card-title" id="medCardTitle">Therapeutic Protocol</div>
+                  <div class="card-badge">Clinical Integration</div>
+                </div>
+                <div id="medCardContent"></div>
+              </div>
+
+              <!-- AI Diet Generation -->
+              <div class="card anim-up d3">
+                <div class="card-header-row">
+                  <div class="card-title">AI Diet Generation</div>
+                  <div class="card-badge">Agentic Planning</div>
+                </div>
+                <button class="btn-generate" id="generateBtn" onclick="generateDietPlan()">
+                  ✨ Initialize Daily Meal Architecture
+                </button>
+                <div style="display:none;align-items:center;gap:16px;padding:32px 0;" id="dietLoading">
+                  <div class="spinner-dark"></div>
+                  <div style="font-size:14px;color:var(--text-muted);font-style:italic;">Synthesizing parameters and building Indian dietary database...</div>
+                </div>
+                <div style="display:none;" id="dietPlanContainer">
+                  <div style="height:1px;background:var(--border);margin:24px 0;"></div>
+                  <div class="meal-grid" id="mealGrid"></div>
+                  <div class="plan-note" id="planNote"></div>
+                </div>
+              </div>
+
+              <div class="disclaimer">System Output Disclaimer: Calibrations based on the Mifflin-St Jeor formula. Always consult a registered clinician.</div>
+
+            </div><!-- /results-stack -->
+          </div><!-- /right col -->
+        </div><!-- /main-page-grid -->
+      </div><!-- /tab-home -->
+
+
+      <!-- ════════════════════════════════════
+           TAB: DEFICIENCY DETECTOR
+      ════════════════════════════════════ -->
+      <div class="tab-page" id="tab-deficiency">
+        <div class="tools-intro">
+          <h1>🔬 Deficiency Detector</h1>
+          <p>Cross-reference physiological symptoms to isolate potential vitamin and mineral gaps.</p>
         </div>
 
-        <div class="section-card animate-slide-up delay-2">
-          <div class="card-header">
-            <div class="card-title">Metabolic Diagnostics</div>
-            <div class="card-badge">Mifflin-St Jeor Logic</div>
-          </div>
-          <div class="bmr-row">
-            <div class="bmr-item">
-              <div class="bmr-label">Base BMR</div>
-              <div class="bmr-val" id="bmrVal">—</div>
-              <div class="bmr-sub">Resting expenditure</div>
-            </div>
-            <div class="bmr-item">
-              <div class="bmr-label">Active TDEE</div>
-              <div class="bmr-val" id="tdeeVal">—</div>
-              <div class="bmr-sub">With activity multiplier</div>
-            </div>
-            <div class="bmr-item">
-              <div class="bmr-label">Final Target</div>
-              <div class="bmr-val" id="targetVal">—</div>
-              <div class="bmr-sub">Goal adjusted vector</div>
-            </div>
-          </div>
-          
-          <div class="bmi-display" id="bmiDisplay">
-            <div class="bmi-header">
-              <div class="bmi-title">BMI Index Mapping</div>
-              <span class="bmi-category" id="bmiCategory">—</span>
-            </div>
-            <div class="bmi-value-row">
-              <div class="bmi-number" id="bmiNumber">—</div>
-              <div style="font-size:14px;color:var(--text-muted)">kg/m²</div>
-            </div>
-            <div class="bmi-bar-wrap">
-              <div class="bmi-bar-track"></div>
-              <div class="bmi-bar-marker" id="bmiMarker"></div>
-            </div>
-            <div class="bmi-scale">
-              <span>Underweight<br>&lt;18.5</span>
-              <span style="text-align:center;">Optimal<br>18.5–24.9</span>
-              <span style="text-align:center;">Overweight<br>25–29.9</span>
-              <span style="text-align:right;">Obese<br>≥30</span>
-            </div>
-            <div class="bmi-suggestion" id="bmiSuggestion"></div>
-          </div>
-        </div>
+        <div class="card" style="max-width:860px;">
+          <div class="card-title" style="margin-bottom:6px;">Symptom Input Vectors</div>
+          <div class="card-sub">Select all symptoms you are currently experiencing</div>
 
-        <div class="section-card animate-slide-up delay-3">
-          <div class="card-header">
-            <div class="card-title">Micronutrient Baseline</div>
-            <div class="card-badge">DRI Standard</div>
-          </div>
-          <div class="micro-grid" id="microGrid"></div>
-        </div>
+          <div class="symptom-grid" id="symptomGrid"></div>
 
-        <div class="section-card medicine-card animate-slide-up delay-3" id="medicineCard" style="display:none;">
-          <div class="card-header">
-            <div class="card-title" id="medicineCardTitle">Therapeutic Protocol</div>
-            <div class="card-badge" id="medicineCardBadge">Clinical Integration</div>
-          </div>
-          <div id="medicineCardContent"></div>
-        </div>
-
-        <div class="section-card animate-slide-up delay-3">
-          <div class="card-header">
-            <div class="card-title">AI Diet Generation</div>
-            <div class="card-badge" id="dietPlanBadge">Agentic Planning</div>
-          </div>
-          <button class="btn-generate" id="generateBtn" onclick="generateDietPlan()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              <path d="M12 8v4l3 3"></path>
-            </svg>
-            Initialize Daily Meal Architecture
+          <button class="btn-tool btn-blue" onclick="runDeficiencyCheck()" id="deficiencyBtn">
+            🔍 Execute Diagnostic Scan
           </button>
-          <div class="diet-loading" id="dietLoading">
-            <div class="spinner"></div>
-            <div class="diet-loading-text">Synthesizing parameters and fetching local Indian dietary database...</div>
-          </div>
-          <div class="diet-plan-container" id="dietPlanContainer">
-            <div style="height: 1px; background: var(--border); margin: 32px 0;"></div>
-            <div class="meal-grid" id="mealGrid"></div>
-            <div class="formula-note" style="margin-top:24px;" id="planNote"></div>
+
+          <div class="tool-result-area" id="deficiencyResult">
+            <div id="deficiencyResultContent"></div>
           </div>
         </div>
 
-        <div class="disclaimer">
-          System Output Disclaimer: Calibrations based on established physiological formulas (Mifflin-St Jeor). Always route final protocol through a registered clinician.
-        </div>
-      </div></main>
-  </div></div><div class="tools-wrapper-full">
-  <div class="tools-inner">
-    <div class="tools-section-header">
-      <div class="tools-section-eyebrow">Advanced Nutrition Modules</div>
-      <div class="tools-section-title">Food as Medicine Toolkit</div>
-      <div class="tools-section-sub">Execute distinct agentic subroutines to analyze deficiencies, optimize existing meals, or generate complete multi-day dietary schedules.</div>
-    </div>
-
-    <div class="tools-grid">
-
-      <div class="tool-card theme-blue animate-slide-up delay-1">
-        <div class="tool-card-icon blue">🔬</div>
-        <div class="tool-card-title">Deficiency Detector</div>
-        <div class="tool-card-desc">
-          Cross-reference physiological symptoms against micronutrient requirements to isolate potential vitamin/mineral gaps.
-        </div>
-
-        <div class="field-group" style="margin-bottom:0">
-          <label class="field-label">Symptom Input Vectors</label>
-          <div class="symptom-grid" id="symptomGrid">
-            </div>
-        </div>
-
-        <button class="btn-tool blue" onclick="runDeficiencyCheck()" id="deficiencyBtn">
-          Execute Diagnostic Scan
-        </button>
-
-        <div class="tool-result" id="deficiencyResult">
-          <div id="deficiencyResultContent"></div>
+        <div class="disclaimer" style="max-width:860px;text-align:left;padding-top:16px;">
+          ⚠️ Screening tool only. Execute full serological blood work for clinical diagnosis.
         </div>
       </div>
 
-      <div class="tool-card theme-amber animate-slide-up delay-2">
-        <div class="tool-card-icon amber">🍱</div>
-        <div class="tool-card-title">Meal Improver</div>
-        <div class="tool-card-desc">
-          Pass your current meal logs through the nutritional API to detect missing macros and suggest high-yield localized improvements.
+
+      <!-- ════════════════════════════════════
+           TAB: MEAL IMPROVER
+      ════════════════════════════════════ -->
+      <div class="tab-page" id="tab-improver">
+        <div class="tools-intro">
+          <h1>🍱 Smart Meal Improver</h1>
+          <p>Pass your current meal logs through AI analysis to detect missing macros and get localized Indian improvements.</p>
         </div>
 
-        <div class="field-group" style="margin-bottom:12px">
-          <label class="field-label">Meal Log Input</label>
-          <textarea id="mealInput" placeholder="e.g. Aloo paratha with butter for breakfast, rice and dal for lunch..."></textarea>
-        </div>
-        <div class="field-group" style="margin-bottom:0">
-          <label class="field-label">Target Filter (optional)</label>
-          <select id="improverCondition">
-            <option value="none">General Health</option>
-            <option value="diabetes">Diabetes (Type 2)</option>
-            <option value="hypertension">Hypertension</option>
-            <option value="anemia">Anemia</option>
-            <option value="pcos">PCOS</option>
-          </select>
-        </div>
+        <div class="card" style="max-width:860px;">
+          <div class="field-group">
+            <label class="field-label">Meal Log Input</label>
+            <textarea id="mealInput" placeholder="e.g. Aloo paratha with butter for breakfast, rice and dal for lunch, paneer sabji for dinner..." style="height:120px;"></textarea>
+          </div>
+          <div class="field-group" style="margin-bottom:0;">
+            <label class="field-label">Condition Filter (optional)</label>
+            <select id="improverCondition">
+              <option value="none">General Health</option>
+              <option value="diabetes">Diabetes (Type 2)</option>
+              <option value="hypertension">Hypertension</option>
+              <option value="anemia">Anemia</option>
+              <option value="pcos">PCOS</option>
+            </select>
+          </div>
 
-        <button class="btn-tool amber" onclick="analyzeMeal()" id="improverBtn" style="margin-top:24px;">
-          Analyze & Refine Meal
-        </button>
+          <button class="btn-tool btn-amber" onclick="analyzeMeal()" id="improverBtn" style="margin-top:20px;">
+            🔧 Analyze & Refine Meal
+          </button>
 
-        <div class="tool-result" id="improverResult">
-          <div id="improverResultContent"></div>
-        </div>
-      </div>
-
-      <div class="tool-card theme-violet animate-slide-up delay-3">
-        <div class="tool-card-icon violet">📅</div>
-        <div class="tool-card-title">Weekly Macro Planner</div>
-        <div class="tool-card-desc">
-          Compile a complete 7-day Indian meal matrix synchronized with your exact target caloric and macronutrient baselines.
-        </div>
-
-        <div class="formula-note" id="weeklyPlannerNote" style="font-size:13px; margin-bottom:0;">
-          ℹ️ Sequence dependency: Execute main calculator profile above before generating the weekly matrix.
-        </div>
-
-        <button class="btn-tool violet" onclick="generateWeeklyPlan()" id="weeklyBtn" disabled>
-          Generate 7-Day Matrix
-        </button>
-
-        <div class="tool-result" id="weeklyResult">
-          <div id="weeklyResultContent"></div>
+          <div class="tool-result-area" id="improverResult">
+            <div id="improverResultContent"></div>
+          </div>
         </div>
       </div>
 
-    </div></div></div><script>
-// ══════════════════════════════════════════════════
-// STATE 
-// Maintaining `aiConfig` default strictly for backend 
-// fetch calls, though UI toggle is removed.
-// ══════════════════════════════════════════════════
+
+      <!-- ════════════════════════════════════
+           TAB: WEEKLY PLANNER
+      ════════════════════════════════════ -->
+      <div class="tab-page" id="tab-weekly">
+        <div class="tools-intro">
+          <h1>📅 Weekly Macro Planner</h1>
+          <p>Generate a complete 7-day Indian meal matrix synchronized with your exact caloric and macronutrient targets.</p>
+        </div>
+
+        <div class="info-note" id="weeklyNotice">
+          ℹ️ <strong>Sequence dependency:</strong> Execute the main calculator profile on the Home tab first to unlock weekly matrix generation.
+        </div>
+
+        <div class="card" style="max-width:1100px;">
+          <div class="card-header-row">
+            <div class="card-title">7-Day Matrix</div>
+            <div class="card-badge" id="weeklyStatusBadge">Awaiting Profile</div>
+          </div>
+
+          <button class="btn-tool btn-violet" onclick="generateWeeklyPlan()" id="weeklyBtn" disabled>
+            📅 Generate 7-Day Matrix
+          </button>
+
+          <div class="tool-result-area" id="weeklyResult">
+            <div id="weeklyResultContent"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main-area -->
+</div><!-- /app-shell -->
+
+<!-- Mobile Bottom Tab Bar -->
+<nav class="bottom-tabbar">
+  <div class="bottom-tabs">
+    <button class="btab active" id="btab-home" onclick="switchTab('home', null, 'mobile')">
+      <span class="btab-icon">🏠</span>
+      <span class="btab-label">Home</span>
+    </button>
+    <button class="btab" id="btab-deficiency" onclick="switchTab('deficiency', null, 'mobile')">
+      <span class="btab-icon">🔬</span>
+      <span class="btab-label">Deficiency</span>
+    </button>
+    <button class="btab" id="btab-improver" onclick="switchTab('improver', null, 'mobile')">
+      <span class="btab-icon">🍱</span>
+      <span class="btab-label">Meal Fix</span>
+    </button>
+    <button class="btab" id="btab-weekly" onclick="switchTab('weekly', null, 'mobile')">
+      <span class="btab-icon">📅</span>
+      <span class="btab-label">Weekly</span>
+    </button>
+  </div>
+</nav>
+
+<script>
+/* ═══════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════ */
 let state = {
-  gender:   'male',
-  activity: 'sedentary',
-  goal:     'maintain',
-  condition: 'none',   
-  foodPref:  'veg',    
-  budget:    'low',    
+  gender:    'male',
+  activity:  'sedentary',
+  goal:      'maintain',
+  condition: 'none',
+  foodPref:  'veg',
+  budget:    'low',
   results:   null,
-  // Hardcoded to prevent backend breakage:
-  aiConfig: {
-    source:        'api',
-    localEndpoint: 'http://localhost:11434/v1',
-    localModel:    ''
+  aiConfig: { source:'api', localEndpoint:'http://localhost:11434/v1', localModel:'' }
+};
+
+let macroChartInstance = null;
+let currentTab = 'home';
+
+/* ═══════════════════════════════════════════════
+   TAB NAVIGATION
+═══════════════════════════════════════════════ */
+const TAB_META = {
+  home:        { title: 'Home & Calculator',    sub: 'Calibrate metabolic parameters' },
+  deficiency:  { title: 'Deficiency Detector',  sub: 'Symptom-based micronutrient analysis' },
+  improver:    { title: 'Smart Meal Improver',  sub: 'AI-powered meal optimization' },
+  weekly:      { title: 'Weekly Macro Planner', sub: 'Generate 7-day Indian meal matrix' },
+};
+
+function switchTab(tabId, navEl, isMobile) {
+  currentTab = tabId;
+
+  // Deactivate all tab pages
+  document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tabId).classList.add('active');
+
+  // Desktop nav
+  document.querySelectorAll('#desktopNav .nav-item').forEach(n => n.classList.remove('active'));
+  // Mobile nav
+  document.querySelectorAll('#mobileNav .nav-item').forEach(n => n.classList.remove('active'));
+
+  if (navEl) {
+    navEl.classList.add('active');
+    // Sync the other nav
+    const allNavItems = document.querySelectorAll('.nav-item');
+    allNavItems.forEach(n => {
+      if (n.getAttribute('onclick') === navEl.getAttribute('onclick')) n.classList.add('active');
+    });
+  } else {
+    // Activate from bottom tab — sync both navs
+    document.querySelectorAll('.nav-item').forEach(n => {
+      if (n.getAttribute('onclick') && n.getAttribute('onclick').includes(`'${tabId}'`)) {
+        n.classList.add('active');
+      }
+    });
   }
-};
 
-let macroChart = null;
+  // Bottom tabs
+  document.querySelectorAll('.btab').forEach(b => b.classList.remove('active'));
+  const btab = document.getElementById('btab-' + tabId);
+  if (btab) btab.classList.add('active');
 
-// ══════════════════════════════════════════════════
-// CONDITION RULES
-// ══════════════════════════════════════════════════
-const CONDITION_RULES_FE = {
-  diabetes: {
-    label: 'Diabetes (Type 2)', emoji: '🩸',
-    keyFoods: ['Karela (bitter gourd)', 'Methi seeds', 'Whole wheat roti', 'Moong dal', 'Oats', 'Amla', 'Barley water', 'Cinnamon water'],
-    avoid: ['Sugar & mithai', 'White rice (large qty)', 'Maida', 'Fruit juice', 'Packaged biscuits'],
-    tip: '💡 <strong>Logic:</strong> Have 3 small meals + 2 snacks. Walk 20–30 min after eating to manage blood sugar spikes.'
-  },
-  hypertension: {
-    label: 'Hypertension (High BP)', emoji: '❤️',
-    keyFoods: ['Banana', 'Coconut water', 'Garlic', 'Spinach', 'Flaxseeds', 'Amla', 'Oats', 'Beetroot'],
-    avoid: ['Table salt (>1 tsp/day)', 'Pickles & achar', 'Papad', 'Namkeen & salty snacks', 'Processed food'],
-    tip: '💡 <strong>Logic:</strong> Reduce salt gradually over 2 weeks. Use jeera, coriander, and lemon for flavor architecture instead.'
-  },
-  anemia: {
-    label: 'Anemia / Iron Deficiency', emoji: '🫀',
-    keyFoods: ['Spinach + lemon juice', 'Rajma (kidney beans)', 'Jaggery (gud)', 'Ragi', 'Dates', 'Amla', 'Beetroot', 'Sesame chikki'],
-    avoid: ['Tea/coffee within 1 hr of meals', 'Excessive calcium at iron-rich meals'],
-    tip: '💡 <strong>Logic:</strong> Always bind Vitamin C to iron sources to triple absorption. Drink chai 1 hour after meals.'
-  },
-  pcos: {
-    label: 'PCOS / Hormonal Balance', emoji: '🌸',
-    keyFoods: ['Ragi', 'Flaxseeds', 'Walnuts', 'Chickpeas', 'Eggs', 'Cinnamon tea', 'Leafy greens', 'Berries'],
-    avoid: ['White sugar', 'Maida', 'Deep fried food', 'Packaged snacks', 'Excess dairy'],
-    tip: '💡 <strong>Logic:</strong> Stabilize insulin with regular feeding windows. Ground flaxseeds daily help bind excessive estrogen.'
-  },
-  general: {
-    label: 'General Fitness', emoji: '💪',
-    keyFoods: ['Seasonal vegetables', 'All types of dal', 'Curd (probiotic)', 'Fresh seasonal fruits', 'Sprouts', 'Paneer or eggs', 'Nuts & seeds'],
-    avoid: ['Ultra-processed foods', 'Excess cooking oil', 'Excessive sugar', 'Skipping meals'],
-    tip: '💡 <strong>Logic:</strong> Nutritional variety optimizes microbiome. Consistency beats perfection in long-term deployment.'
+  // Topbar
+  const meta = TAB_META[tabId];
+  document.getElementById('topbarTitle').textContent = meta.title;
+  document.getElementById('topbarSub').textContent   = meta.sub;
+
+  // Close drawer on mobile
+  if (isMobile === true) closeDrawer();
+
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ═══════════════════════════════════════════════
+   MOBILE DRAWER
+═══════════════════════════════════════════════ */
+function toggleDrawer() {
+  const btn     = document.getElementById('hamburgerBtn');
+  const drawer  = document.getElementById('mobileDrawer');
+  const overlay = document.getElementById('drawerOverlay');
+  const isOpen  = drawer.classList.contains('open');
+  if (isOpen) { closeDrawer(); } else {
+    drawer.classList.add('open');
+    overlay.classList.add('open');
+    btn.classList.add('open');
+    document.body.style.overflow = 'hidden';
   }
-};
+}
+function closeDrawer() {
+  document.getElementById('mobileDrawer').classList.remove('open');
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.getElementById('hamburgerBtn').classList.remove('open');
+  document.body.style.overflow = '';
+}
 
-// ══════════════════════════════════════════════════
-// DEFICIENCY DETECTOR DATA
-// ══════════════════════════════════════════════════
-const SYMPTOM_MAP = {
-  'Fatigue & Low Energy':  { nutrients: ['Iron', 'B12', 'Vitamin D', 'Magnesium'], weight: 3 },
-  'Pale / Dull Skin':      { nutrients: ['Iron', 'B12'], weight: 3 },
-  'Hair Fall':             { nutrients: ['Iron', 'Protein', 'Zinc', 'Biotin'], weight: 2 },
-  'Brittle Nails':         { nutrients: ['Iron', 'Zinc', 'Protein'], weight: 2 },
-  'Mouth Ulcers':          { nutrients: ['B12', 'Iron', 'Folate'], weight: 3 },
-  'Bleeding Gums':         { nutrients: ['Vitamin C'], weight: 3 },
-  'Bone / Joint Pain':     { nutrients: ['Vitamin D', 'Calcium'], weight: 3 },
-  'Muscle Cramps':         { nutrients: ['Magnesium', 'Calcium', 'Potassium'], weight: 3 },
-  'Night Blindness':       { nutrients: ['Vitamin A'], weight: 3 },
-  'Dry / Flaky Skin':      { nutrients: ['Vitamin A', 'Omega-3', 'Vitamin E'], weight: 2 },
-  'Low Mood / Anxiety':    { nutrients: ['B12', 'Omega-3', 'Vitamin D', 'Magnesium'], weight: 2 },
-  'Frequent Illness':      { nutrients: ['Vitamin C', 'Zinc', 'Vitamin D'], weight: 2 },
-  'Slow Wound Healing':    { nutrients: ['Zinc', 'Vitamin C', 'Protein'], weight: 3 },
-  'Tingling Hands/Feet':   { nutrients: ['B12', 'Folate'], weight: 3 },
-  'Poor Concentration':    { nutrients: ['Iron', 'B12', 'Omega-3'], weight: 2 },
-  'Weakness / Lethargy':   { nutrients: ['Iron', 'Protein', 'B12', 'Vitamin D'], weight: 2 },
-};
-
-const NUTRIENT_FOODS = {
-  'Iron': { icon: '🫘', foods: ['Spinach', 'Rajma', 'Chana', 'Dates', 'Jaggery', 'Ragi', 'Pumpkin seeds'], tip: 'Pair iron-rich foods with Vitamin C for 3× better absorption.' },
-  'B12': { icon: '🥛', foods: ['Eggs', 'Milk', 'Curd', 'Paneer', 'Fish', 'Fortified plant milk'], tip: 'B12 is mainly in animal foods. Pure vegetarians should consider a supplement.' },
-  'Vitamin D': { icon: '☀️', foods: ['Morning sunlight', 'Eggs (yolk)', 'Mushrooms', 'Fortified milk'], tip: 'Sunlight is your best free source. Walk outdoors 9–11 AM.' },
-  'Magnesium': { icon: '🌿', foods: ['Almonds', 'Spinach', 'Pumpkin seeds', 'Dark chocolate', 'Banana'], tip: 'Low magnesium causes poor sleep, cramps, and fatigue.' },
-  'Protein': { icon: '💪', foods: ['All dals', 'Paneer', 'Eggs', 'Curd', 'Rajma', 'Soya chunks', 'Peanuts'], tip: 'Combine different dals to get a complete amino acid profile.' },
-  'Zinc': { icon: '🌱', foods: ['Pumpkin seeds', 'Sesame seeds', 'Chana', 'Eggs', 'Chicken'], tip: 'Zinc is crucial for immunity, taste, and wound healing.' },
-  'Vitamin C': { icon: '🍋', foods: ['Amla', 'Guava', 'Lemon', 'Capsicum', 'Tomato'], tip: 'Amla has ~20× more Vitamin C than oranges.' },
-  'Calcium': { icon: '🦴', foods: ['Milk', 'Curd', 'Ragi', 'Sesame seeds', 'Dark leafy greens', 'Rajma'], tip: 'Ragi is the richest plant-based calcium source in India.' },
-  'Vitamin A': { icon: '🥕', foods: ['Carrot', 'Sweet potato', 'Spinach', 'Mango', 'Eggs'], tip: 'Fat-soluble vitamin — cook or eat with a little ghee for better absorption.' },
-  'Omega-3': { icon: '🐟', foods: ['Flaxseeds', 'Walnuts', 'Fish', 'Chia seeds'], tip: 'Grind flaxseeds before eating — whole seeds pass through undigested.' },
-  'Folate': { icon: '🌿', foods: ['Spinach', 'Chana', 'Moong dal', 'Beetroot', 'Methi'], tip: 'Critical for cell development and preventing fatigue.' },
-  'Potassium': { icon: '🍌', foods: ['Banana', 'Sweet potato', 'Coconut water', 'All dal', 'Spinach', 'Tomato'], tip: 'Helps regulate blood pressure and prevents muscle cramps.' },
-  'Biotin': { icon: '🥚', foods: ['Eggs (cooked)', 'Almonds', 'Sweet potato', 'Onion'], tip: 'Supports hair, nail, and skin health.' },
-  'Vitamin E': { icon: '🌻', foods: ['Almonds', 'Sunflower seeds', 'Spinach', 'Peanuts', 'Wheat germ'], tip: 'Powerful antioxidant protecting skin cells.' },
-};
-
-// ══════════════════════════════════════════════════
-// UI HELPERS 
-// ══════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════
+   UI HELPERS
+═══════════════════════════════════════════════ */
 function selectToggle(field, el, val) {
   document.querySelectorAll(`[data-field="${field}"]`).forEach(b => b.classList.remove('active'));
   el.classList.add('active');
@@ -1172,223 +1302,183 @@ function updateUnitLabels() {
   document.getElementById('weight').placeholder = isMetric ? 'e.g. 70 kg' : 'e.g. 154 lbs';
   document.getElementById('height').placeholder = isMetric ? 'e.g. 175 cm' : 'e.g. 69 in';
 }
-function showError(field, msg) {
-  const el  = document.getElementById(field);
-  const err = document.getElementById(field + '-err');
-  if (el) el.classList.add('error');
-  if (err) { err.textContent = msg; err.classList.add('show'); }
+function clearErr(field) {
+  document.getElementById(field)?.classList.remove('err');
+  const e = document.getElementById(field + '-err');
+  if (e) e.classList.remove('show');
 }
-function clearError(field) {
-  const el  = document.getElementById(field);
-  const err = document.getElementById(field + '-err');
-  if (el) el.classList.remove('error');
-  if (err) err.classList.remove('show');
+function showErr(field, msg) {
+  document.getElementById(field)?.classList.add('err');
+  const e = document.getElementById(field + '-err');
+  if (e) { e.textContent = msg; e.classList.add('show'); }
 }
 
-// ══════════════════════════════════════════════════
-// VALIDATION & CORE CALCULATION
-// ══════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════
+   VALIDATION & CALCULATION
+═══════════════════════════════════════════════ */
 function validate() {
-  let valid = true;
+  let ok = true;
   const age    = parseFloat(document.getElementById('age').value);
   const weight = parseFloat(document.getElementById('weight').value);
-  if (isNaN(age)    || age    < 10  || age    > 100)  { showError('age',    'Enter a valid age between 10 and 100'); valid = false; }
-  if (isNaN(weight) || weight <= 0  || weight > 1000) { showError('weight', 'Enter a valid weight'); valid = false; }
-  return valid;
+  if (isNaN(age)    || age    < 10  || age    > 100)  { showErr('age',    'Valid age: 10–100'); ok = false; }
+  if (isNaN(weight) || weight <= 0  || weight > 1000) { showErr('weight', 'Enter a valid weight'); ok = false; }
+  return ok;
 }
 
 function calculate() {
   if (!validate()) return;
 
-  const units    = document.getElementById('units').value;
-  const age      = parseFloat(document.getElementById('age').value);
-  let weight     = parseFloat(document.getElementById('weight').value);
-  let height     = parseFloat(document.getElementById('height').value);
-  const gender   = state.gender;
-  const activity = state.activity;
-  const goal     = state.goal;
+  const units  = document.getElementById('units').value;
+  const age    = parseFloat(document.getElementById('age').value);
+  let weight   = parseFloat(document.getElementById('weight').value);
+  let height   = parseFloat(document.getElementById('height').value);
 
   if (units === 'imperial') {
     weight = weight * 0.453592;
     if (!isNaN(height)) height = height * 2.54;
   }
-
   const h = isNaN(height) ? 175 : height;
+
   let bmr;
-  if (gender === 'male') {
-    bmr = (10 * weight) + (6.25 * h) - (5 * age) + 5;
-  } else if (gender === 'female') {
-    bmr = (10 * weight) + (6.25 * h) - (5 * age) - 161;
-  } else {
-    bmr = ((10 * weight) + (6.25 * h) - (5 * age) + 5 + (10 * weight) + (6.25 * h) - (5 * age) - 161) / 2;
-  }
+  if (state.gender === 'male')   bmr = 10*weight + 6.25*h - 5*age + 5;
+  else if (state.gender === 'female') bmr = 10*weight + 6.25*h - 5*age - 161;
+  else bmr = ((10*weight + 6.25*h - 5*age + 5) + (10*weight + 6.25*h - 5*age - 161)) / 2;
 
-  const activityMult = { sedentary: 1.2, moderate: 1.55, active: 1.725 };
-  const tdee = bmr * activityMult[activity];
+  const actMult = { sedentary: 1.2, moderate: 1.55, active: 1.725 };
+  const tdee = bmr * actMult[state.activity];
   const goalAdj = { lose: -500, maintain: 0, gain: 300 };
-  const targetCal = tdee + goalAdj[goal];
+  const targetCal = tdee + goalAdj[state.goal];
 
-  let proteinPerKg;
-  if (goal === 'lose')     proteinPerKg = 1.4;
-  else if (goal === 'gain') proteinPerKg = 1.6;
-  else                     proteinPerKg = 1.0;
-
-  const protein = Math.round(weight * proteinPerKg);
+  const protPerKg = state.goal === 'gain' ? 1.6 : state.goal === 'lose' ? 1.4 : 1.0;
+  const protein = Math.round(weight * protPerKg);
   const carbs   = Math.round((targetCal * 0.50) / 4);
   const fats    = Math.round((targetCal * 0.30) / 9);
   const fiber   = Math.round((targetCal / 1000) * 14);
-  const micro   = getMicronutrients(gender, age, goal);
+  const micro   = getMicros(state.gender, age, state.goal);
 
   let bmi = null, bmiCat = null;
   if (!isNaN(height) && height > 0) {
-    bmi = weight / ((h / 100) ** 2);
+    bmi    = weight / ((h/100)**2);
     bmiCat = bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Normal' : bmi < 30 ? 'Overweight' : 'Obese';
   }
 
-  state.results = { age, weight, gender, activity, goal, bmr, tdee, targetCal, protein, carbs, fats, fiber, micro, bmi, bmiCat, units };
   state.condition = document.getElementById('condition').value;
+  state.results   = { age, weight, gender: state.gender, activity: state.activity, goal: state.goal,
+                      bmr, tdee, targetCal, protein, carbs, fats, fiber, micro, bmi, bmiCat };
 
   renderResults(state.results);
 }
 
-function getMicronutrients(gender, age, goal) {
-  const isMale = gender === 'male';
+function getMicros(gender, age, goal) {
+  const m = gender === 'male';
   return [
-    { name: 'Calcium',     value: isMale && age > 70 ? 1200 : 1000,  unit: 'mg',  max: 1300 },
-    { name: 'Iron',        value: isMale ? 8 : (age < 51 ? 18 : 8),  unit: 'mg',  max: 18 },
-    { name: 'Vitamin D',   value: age > 70 ? 20 : 15,                unit: 'µg',  max: 20 },
-    { name: 'Vitamin C',   value: isMale ? 90 : 75,                  unit: 'mg',  max: 90 },
-    { name: 'Vitamin B12', value: 2.4,                               unit: 'µg',  max: 2.4 },
-    { name: 'Folate',      value: 400,                               unit: 'µg',  max: 400 },
-    { name: 'Potassium',   value: isMale ? 3400 : 2600,              unit: 'mg',  max: 3400 },
-    { name: 'Magnesium',   value: isMale ? (age > 30 ? 420 : 400) : (age > 30 ? 320 : 310), unit: 'mg', max: 420 },
-    { name: 'Zinc',        value: isMale ? 11 : 8,                   unit: 'mg',  max: 11 },
-    { name: 'Sodium',      value: 2300,                              unit: 'mg',  max: 2300 },
-    { name: 'Vitamin A',   value: isMale ? 900 : 700,                unit: 'µg',  max: 900 },
-    { name: 'Omega-3',     value: isMale ? 1.6 : 1.1,                unit: 'g',   max: 1.6 },
+    { name:'Calcium',     value: m && age>70 ? 1200 : 1000, unit:'mg',  max:1300 },
+    { name:'Iron',        value: m ? 8 : (age<51 ? 18 : 8), unit:'mg',  max:18 },
+    { name:'Vitamin D',   value: age>70 ? 20 : 15,          unit:'µg',  max:20 },
+    { name:'Vitamin C',   value: m ? 90 : 75,               unit:'mg',  max:90 },
+    { name:'Vitamin B12', value: 2.4,                       unit:'µg',  max:2.4 },
+    { name:'Folate',      value: 400,                       unit:'µg',  max:400 },
+    { name:'Potassium',   value: m ? 3400 : 2600,           unit:'mg',  max:3400 },
+    { name:'Magnesium',   value: m ? (age>30 ? 420:400) : (age>30 ? 320:310), unit:'mg', max:420 },
+    { name:'Zinc',        value: m ? 11 : 8,                unit:'mg',  max:11 },
+    { name:'Sodium',      value: 2300,                      unit:'mg',  max:2300 },
+    { name:'Vitamin A',   value: m ? 900 : 700,             unit:'µg',  max:900 },
+    { name:'Omega-3',     value: m ? 1.6 : 1.1,             unit:'g',   max:1.6 },
   ];
 }
 
-// ══════════════════════════════════════════════════
-// RENDER RESULTS
-// ══════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════
+   RENDER RESULTS
+═══════════════════════════════════════════════ */
 function renderResults(r) {
   document.getElementById('welcomeState').style.display = 'none';
   document.getElementById('resultsContent').classList.add('show');
 
-  document.getElementById('dietPlanContainer').classList.remove('show');
-  document.getElementById('dietLoading').classList.remove('show');
-  document.getElementById('generateBtn').classList.remove('loading');
+  // Reset diet section
+  document.getElementById('dietPlanContainer').style.display = 'none';
+  document.getElementById('dietLoading').style.display = 'none';
   document.getElementById('generateBtn').disabled = false;
 
+  // Macros
   document.getElementById('calVal').textContent  = Math.round(r.targetCal).toLocaleString();
   document.getElementById('proVal').textContent  = r.protein;
   document.getElementById('carbVal').textContent = r.carbs;
   document.getElementById('fatVal').textContent  = r.fats;
-  document.getElementById('chartCenterCal').textContent = Math.round(r.targetCal).toLocaleString();
+  document.getElementById('chartCal').textContent = Math.round(r.targetCal).toLocaleString();
 
-  const goalLabels = { lose: '↓ Caloric Deficit', maintain: '◎ Baseline Active', gain: '↑ Caloric Surplus' };
+  const goalLabels = { lose:'↓ Deficit', maintain:'◎ Baseline', gain:'↑ Surplus' };
   document.getElementById('goalBadge').textContent = goalLabels[r.goal];
 
-  const totalMacro = (r.protein * 4) + (r.carbs * 4) + (r.fats * 9);
+  const tot = r.protein*4 + r.carbs*4 + r.fats*9;
   document.getElementById('legPro').textContent     = r.protein + 'g';
   document.getElementById('legCarb').textContent    = r.carbs + 'g';
   document.getElementById('legFat').textContent     = r.fats + 'g';
   document.getElementById('legFiber').textContent   = r.fiber + 'g';
-  document.getElementById('legProPct').textContent  = Math.round((r.protein * 4) / totalMacro * 100) + '%';
-  document.getElementById('legCarbPct').textContent = Math.round((r.carbs * 4) / totalMacro * 100) + '%';
-  document.getElementById('legFatPct').textContent  = Math.round((r.fats * 9) / totalMacro * 100) + '%';
+  document.getElementById('legProPct').textContent  = Math.round(r.protein*4/tot*100) + '%';
+  document.getElementById('legCarbPct').textContent = Math.round(r.carbs*4/tot*100) + '%';
+  document.getElementById('legFatPct').textContent  = Math.round(r.fats*9/tot*100) + '%';
 
+  // BMR
   document.getElementById('bmrVal').textContent    = Math.round(r.bmr).toLocaleString();
   document.getElementById('tdeeVal').textContent   = Math.round(r.tdee).toLocaleString();
   document.getElementById('targetVal').textContent = Math.round(r.targetCal).toLocaleString();
 
   renderBMI(r);
-  renderMacroChart(r);
+  renderChart(r);
   renderMicro(r.micro);
-  renderMedicineCard(state.condition);
+  renderMedCard(state.condition);
 
+  // Unlock weekly planner
   document.getElementById('weeklyBtn').disabled = false;
-  document.getElementById('weeklyPlannerNote').style.display = 'none';
+  document.getElementById('weeklyStatusBadge').textContent = 'Profile Ready';
+  document.getElementById('weeklyNotice').style.display = 'none';
 
-  if (window.innerWidth < 960) {
+  if (window.innerWidth < 1000) {
     document.getElementById('resultsContent').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }
 
 function renderBMI(r) {
-  const display = document.getElementById('bmiDisplay');
-  if (!r.bmi) { display.classList.remove('show'); return; }
+  const box = document.getElementById('bmiDisplay');
+  if (!r.bmi) { box.classList.remove('show'); return; }
+  box.classList.add('show');
+  document.getElementById('bmiNum').textContent = r.bmi.toFixed(1);
 
-  display.classList.add('show');
-  document.getElementById('bmiNumber').textContent = r.bmi.toFixed(1);
-
-  const catEl = document.getElementById('bmiCategory');
-  const catStyles = {
-    'Underweight': { bg: '#EFF6FF', color: '#1D4ED8', text: 'Underweight' },
-    'Normal':      { bg: '#F0FFF4', color: '#166534', text: 'Optimal Range ✓' },
-    'Overweight':  { bg: '#FFFBEB', color: '#92400E', text: 'Overweight' },
-    'Obese':       { bg: '#FEF2F2', color: '#991B1B', text: 'Obese' },
+  const styles = {
+    'Underweight': { bg:'#EFF6FF', col:'#1D4ED8', txt:'Underweight' },
+    'Normal':      { bg:'#F0FFF4', col:'#166534', txt:'Optimal ✓'   },
+    'Overweight':  { bg:'#FFFBEB', col:'#92400E', txt:'Overweight'  },
+    'Obese':       { bg:'#FEF2F2', col:'#991B1B', txt:'Obese'       },
   };
-  const style = catStyles[r.bmiCat] || catStyles['Normal'];
-  catEl.textContent = style.text;
-  catEl.style.background = style.bg;
-  catEl.style.color = style.color;
+  const s = styles[r.bmiCat] || styles['Normal'];
+  const catEl = document.getElementById('bmiCat');
+  catEl.textContent = s.txt;
+  catEl.style.background = s.bg;
+  catEl.style.color = s.col;
 
-  const pct = Math.min(Math.max(((r.bmi - 15) / 20) * 100, 2), 98);
+  const pct = Math.min(Math.max(((r.bmi - 15)/20)*100, 2), 98);
   document.getElementById('bmiMarker').style.left = pct + '%';
 
-  const suggestions = {
-    'Underweight': '↑ Increase calorie intake via nutrient-dense food paths. Consult clinical dietetics for mass-gain protocols.',
-    'Normal':      '✓ Parameter normal. Ensure daily macro/micro targets are met to maintain metabolic homeostasis.',
-    'Overweight':  '↓ Implement a mild caloric deficit. Focus on protein loading to prevent muscle degradation during weight reduction.',
-    'Obese':       '↓ Medical guidance recommended. Focus on sustainable, long-term caloric adherence over aggressive diets.',
+  const notes = {
+    'Underweight': '↑ Increase calorie intake via nutrient-dense paths.',
+    'Normal':      '✓ Parameter normal. Maintain macro/micro targets daily.',
+    'Overweight':  '↓ Implement mild caloric deficit. Prioritize protein.',
+    'Obese':       '↓ Medical guidance recommended. Focus on sustainable adherence.',
   };
-  document.getElementById('bmiSuggestion').textContent = suggestions[r.bmiCat];
+  document.getElementById('bmiNote').textContent = notes[r.bmiCat];
 }
 
-function renderMedicineCard(condition) {
-  const card = document.getElementById('medicineCard');
-  if (!condition || condition === 'none') {
-    card.style.display = 'none';
-    return;
-  }
-  const rules = CONDITION_RULES_FE[condition];
-  if (!rules) { card.style.display = 'none'; return; }
-
-  card.style.display = 'block';
-  document.getElementById('medicineCardTitle').textContent = `${rules.emoji} Medical Integration — ${rules.label}`;
-
-  document.getElementById('medicineCardContent').innerHTML = `
-    <div class="medicine-sections">
-      <div>
-        <div class="medicine-section-title">✅ Therapeutic Inclusions</div>
-        <div class="medicine-key-foods">
-          ${rules.keyFoods.map(f => `<span class="food-pill">${f}</span>`).join('')}
-        </div>
-      </div>
-      <div>
-        <div class="medicine-section-title">⛔ Inflammatory Exclusions</div>
-        <div class="medicine-avoid-list">
-          ${rules.avoid.map(f => `<span class="avoid-pill">${f}</span>`).join('')}
-        </div>
-      </div>
-    </div>
-    <div class="medicine-tip" style="margin-top:20px;">${rules.tip}</div>
-  `;
-}
-
-function renderMacroChart(r) {
+function renderChart(r) {
   const ctx = document.getElementById('macroChart').getContext('2d');
-  if (macroChart) macroChart.destroy();
-  macroChart = new Chart(ctx, {
+  if (macroChartInstance) macroChartInstance.destroy();
+  macroChartInstance = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: ['Protein', 'Carbs', 'Fats'],
+      labels: ['Protein','Carbs','Fats'],
       datasets: [{
-        data: [r.protein * 4, r.carbs * 4, r.fats * 9],
-        backgroundColor: ['#3A7036', '#5B9ECD', '#D4A840'],
-        borderWidth: 0, hoverOffset: 8, borderRadius: 6
+        data: [r.protein*4, r.carbs*4, r.fats*9],
+        backgroundColor: ['#3A7036','#5B9ECD','#D4A840'],
+        borderWidth: 0, hoverOffset: 6, borderRadius: 4
       }]
     },
     options: {
@@ -1397,13 +1487,8 @@ function renderMacroChart(r) {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: 'rgba(17, 28, 15, 0.9)',
-          padding: 12,
-          titleFont: { family: 'DM Sans', size: 13 },
-          bodyFont: { family: 'DM Sans', size: 14, weight: 'bold' },
-          callbacks: {
-            label: ctx => ` ${Math.round(ctx.raw)} kcal (${Math.round(ctx.raw / (r.protein * 4 + r.carbs * 4 + r.fats * 9) * 100)}%)`
-          }
+          backgroundColor: 'rgba(17,28,15,0.9)', padding: 10,
+          callbacks: { label: c => ` ${Math.round(c.raw)} kcal (${Math.round(c.raw/(r.protein*4+r.carbs*4+r.fats*9)*100)}%)` }
         }
       }
     }
@@ -1411,361 +1496,352 @@ function renderMacroChart(r) {
 }
 
 function renderMicro(micros) {
-  document.getElementById('microGrid').innerHTML = micros.map((m, i) => {
-    const pct = Math.min(Math.round((m.value / m.max) * 100), 100);
-    return `
-      <div class="micro-tile" style="animation: slideUpFade 0.4s ease ${i * 0.05}s both;">
-        <div class="micro-name">${m.name}</div>
-        <div>
-          <span class="micro-value">${m.value % 1 === 0 ? m.value : m.value.toFixed(1)}</span>
-          <span class="micro-unit"> ${m.unit}</span>
-        </div>
-        <div class="micro-bar-wrap"><div class="micro-bar-fill" style="width:${pct}%"></div></div>
-      </div>`;
+  document.getElementById('microGrid').innerHTML = micros.map((m,i) => {
+    const pct = Math.min(Math.round((m.value/m.max)*100), 100);
+    return `<div class="microtile" style="animation:slideUpFade 0.4s ease ${i*0.04}s both;">
+      <div class="microtile-name">${m.name}</div>
+      <div><span class="microtile-val">${m.value%1===0?m.value:m.value.toFixed(1)}</span><span class="microtile-unit"> ${m.unit}</span></div>
+      <div class="mbar-wrap"><div class="mbar-fill" style="width:${pct}%"></div></div>
+    </div>`;
   }).join('');
 }
 
-// ══════════════════════════════════════════════════
-// AI MEAL PLAN GENERATION API
-// ══════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════
+   CONDITION RULES
+═══════════════════════════════════════════════ */
+const COND = {
+  diabetes: {
+    label:'Diabetes (Type 2)', emoji:'🩸',
+    keyFoods:['Karela (bitter gourd)','Methi seeds','Whole wheat roti','Moong dal','Oats','Amla','Barley water','Cinnamon water'],
+    avoid:['Sugar & mithai','White rice (large qty)','Maida','Fruit juice','Packaged biscuits'],
+    tip:'💡 <strong>Logic:</strong> Have 3 small meals + 2 snacks. Walk 20–30 min after eating to manage blood sugar spikes.'
+  },
+  hypertension: {
+    label:'Hypertension (High BP)', emoji:'❤️',
+    keyFoods:['Banana','Coconut water','Garlic','Spinach','Flaxseeds','Amla','Oats','Beetroot'],
+    avoid:['Table salt (>1 tsp/day)','Pickles & achar','Papad','Namkeen & salty snacks','Processed food'],
+    tip:'💡 <strong>Logic:</strong> Reduce salt gradually over 2 weeks. Use jeera, coriander, and lemon for flavor instead.'
+  },
+  anemia: {
+    label:'Anemia / Iron Deficiency', emoji:'🫀',
+    keyFoods:['Spinach + lemon juice','Rajma (kidney beans)','Jaggery (gud)','Ragi','Dates','Amla','Beetroot','Sesame chikki'],
+    avoid:['Tea/coffee within 1 hr of meals','Excessive calcium at iron-rich meals'],
+    tip:'💡 <strong>Logic:</strong> Always pair Vitamin C with iron sources to triple absorption. Drink chai 1 hour after meals.'
+  },
+  pcos: {
+    label:'PCOS / Hormonal Balance', emoji:'🌸',
+    keyFoods:['Ragi','Flaxseeds','Walnuts','Chickpeas','Eggs','Cinnamon tea','Leafy greens','Berries'],
+    avoid:['White sugar','Maida','Deep fried food','Packaged snacks','Excess dairy'],
+    tip:'💡 <strong>Logic:</strong> Stabilize insulin with regular feeding windows. Ground flaxseeds daily help bind excess estrogen.'
+  },
+  general: {
+    label:'General Fitness', emoji:'💪',
+    keyFoods:['Seasonal vegetables','All types of dal','Curd (probiotic)','Fresh seasonal fruits','Sprouts','Paneer or eggs','Nuts & seeds'],
+    avoid:['Ultra-processed foods','Excess cooking oil','Excessive sugar','Skipping meals'],
+    tip:'💡 <strong>Logic:</strong> Nutritional variety optimizes microbiome. Consistency beats perfection long-term.'
+  }
+};
+
+function renderMedCard(condition) {
+  const card = document.getElementById('medicineCard');
+  if (!condition || condition === 'none') { card.classList.remove('show'); return; }
+  const r = COND[condition];
+  if (!r) { card.classList.remove('show'); return; }
+  card.classList.add('show');
+  document.getElementById('medCardTitle').textContent = `${r.emoji} Medical Integration — ${r.label}`;
+  document.getElementById('medCardContent').innerHTML = `
+    <div class="med-sections">
+      <div>
+        <div class="med-section-title">✅ Therapeutic Inclusions</div>
+        <div class="food-pills">${r.keyFoods.map(f=>`<span class="food-pill">${f}</span>`).join('')}</div>
+      </div>
+      <div>
+        <div class="med-section-title">⛔ Inflammatory Exclusions</div>
+        <div class="food-pills">${r.avoid.map(f=>`<span class="avoid-pill">${f}</span>`).join('')}</div>
+      </div>
+    </div>
+    <div class="med-tip" style="margin-top:16px;">${r.tip}</div>`;
+}
+
+/* ═══════════════════════════════════════════════
+   AI DIET PLAN GENERATION
+═══════════════════════════════════════════════ */
 async function generateDietPlan() {
   if (!state.results) return;
-
-  const btn       = document.getElementById('generateBtn');
-  const loading   = document.getElementById('dietLoading');
+  const btn = document.getElementById('generateBtn');
+  const loading = document.getElementById('dietLoading');
   const container = document.getElementById('dietPlanContainer');
-  const mealGrid  = document.getElementById('mealGrid');
+  const mealGrid = document.getElementById('mealGrid');
 
-  btn.classList.add('loading'); btn.disabled = true;
-  loading.classList.add('show'); container.classList.remove('show');
+  btn.disabled = true;
+  loading.style.display = 'flex';
+  container.style.display = 'none';
 
   const r = state.results;
-
   try {
     const response = await fetch('/api/diet', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        targetCal: Math.round(r.targetCal),
-        protein:   r.protein,
-        condition: state.condition,
-        foodPref:  state.foodPref,
-        budget:    state.budget,
-        aiConfig:  state.aiConfig 
-      })
+      body: JSON.stringify({ targetCal: Math.round(r.targetCal), protein: r.protein, condition: state.condition, foodPref: state.foodPref, budget: state.budget, aiConfig: state.aiConfig })
     });
-
-    if (!response.ok) {
-      const errBody = await response.json().catch(() => ({}));
-      throw new Error(errBody.error || `Server communication failure: ${response.status}`);
-    }
+    if (!response.ok) { const e = await response.json().catch(()=>({})); throw new Error(e.error || `Server error ${response.status}`); }
     const { meals, conditionLabel } = await response.json();
-
-    const mealEmojis = { Breakfast: '🌅', Lunch: '🥗', Dinner: '🌙', Snacks: '🍎' };
-
-    mealGrid.innerHTML = meals.map((meal, index) => {
-      const emoji = mealEmojis[meal.name] || '🍽️';
-      return `
-        <div class="meal-card" style="animation: slideUpFade 0.4s ease ${index * 0.1}s both;">
-          <div class="meal-header">
-            <span class="meal-emoji">${emoji}</span>
-            <span class="meal-name">${meal.name} Phase</span>
+    const emojis = { Breakfast:'🌅', Lunch:'🥗', Dinner:'🌙', Snacks:'🍎' };
+    mealGrid.innerHTML = meals.map((meal, idx) => `
+      <div class="meal-card" style="animation:slideUpFade 0.4s ease ${idx*0.1}s both;">
+        <div class="meal-head">
+          <span style="font-size:18px;">${emojis[meal.name]||'🍽️'}</span>
+          <span style="font-weight:700;font-size:14px;color:var(--text-dark);">${meal.name} Phase</span>
+        </div>
+        <div class="meal-body">
+          <div class="meal-items">
+            ${meal.itemsDetailed.map(i=>`<div class="meal-item">${i.name} (${i.kcal} kcal, ${i.protein}g pro)</div>`).join('')}
           </div>
-          <div class="meal-body">
-            <div class="meal-items">
-              ${meal.itemsDetailed.map(i => `<div class="meal-item">${i.name} (${i.kcal} kcal, ${i.protein}g pro)</div>`).join('')}
-            </div>
-            <div class="meal-macros">
-              <span class="meal-macro-tag cal">~${meal.kcal} kcal</span>
-              <span class="meal-macro-tag pro">${meal.protein}g protein</span>
-            </div>
+          <div class="meal-tags">
+            <span class="mtag mtag-cal">~${meal.kcal} kcal</span>
+            <span class="mtag mtag-pro">${meal.protein}g protein</span>
           </div>
-        </div>`;
-    }).join('');
-
-    const conditionNote = (state.condition && state.condition !== 'none' && conditionLabel)
-      ? ` · Architected for <strong>${conditionLabel}</strong> recovery.` : '';
-    document.getElementById('planNote').innerHTML =
-      `<strong>Data verified via Edamam backend.</strong> Target logic implemented${conditionNote}`;
-
-    container.classList.add('show');
-
+        </div>
+      </div>`).join('');
+    const condNote = (state.condition && state.condition !== 'none' && conditionLabel) ? ` · Architected for <strong>${conditionLabel}</strong> recovery.` : '';
+    document.getElementById('planNote').innerHTML = `<strong>Data verified via Edamam backend.</strong> Target logic implemented${condNote}`;
+    container.style.display = 'block';
+    container.style.animation = 'slideUpFade 0.5s ease both';
   } catch (err) {
-    mealGrid.innerHTML = `<div style="padding:20px;color:#EF4444;background:#FEF2F2;border-radius:12px;border:1px solid #FECACA;">System Error: ${err.message}. Ensure backend Flask server is operational.</div>`;
-    container.classList.add('show');
+    mealGrid.innerHTML = `<div style="padding:16px;color:#EF4444;background:#FEF2F2;border-radius:10px;border:1px solid #FECACA;font-size:14px;">System Error: ${err.message}. Ensure backend Flask server is operational.</div>`;
+    container.style.display = 'block';
   } finally {
-    loading.classList.remove('show');
-    btn.classList.remove('loading');
+    loading.style.display = 'none';
     btn.disabled = false;
   }
 }
 
-// ══════════════════════════════════════════════════
-// TOOLS: DEFICIENCY DETECTOR
-// ══════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════
+   DEFICIENCY DETECTOR
+═══════════════════════════════════════════════ */
+const SYMPTOM_MAP = {
+  'Fatigue & Low Energy':  { nutrients:['Iron','B12','Vitamin D','Magnesium'], weight:3 },
+  'Pale / Dull Skin':      { nutrients:['Iron','B12'], weight:3 },
+  'Hair Fall':             { nutrients:['Iron','Protein','Zinc','Biotin'], weight:2 },
+  'Brittle Nails':         { nutrients:['Iron','Zinc','Protein'], weight:2 },
+  'Mouth Ulcers':          { nutrients:['B12','Iron','Folate'], weight:3 },
+  'Bleeding Gums':         { nutrients:['Vitamin C'], weight:3 },
+  'Bone / Joint Pain':     { nutrients:['Vitamin D','Calcium'], weight:3 },
+  'Muscle Cramps':         { nutrients:['Magnesium','Calcium','Potassium'], weight:3 },
+  'Night Blindness':       { nutrients:['Vitamin A'], weight:3 },
+  'Dry / Flaky Skin':      { nutrients:['Vitamin A','Omega-3','Vitamin E'], weight:2 },
+  'Low Mood / Anxiety':    { nutrients:['B12','Omega-3','Vitamin D','Magnesium'], weight:2 },
+  'Frequent Illness':      { nutrients:['Vitamin C','Zinc','Vitamin D'], weight:2 },
+  'Slow Wound Healing':    { nutrients:['Zinc','Vitamin C','Protein'], weight:3 },
+  'Tingling Hands/Feet':   { nutrients:['B12','Folate'], weight:3 },
+  'Poor Concentration':    { nutrients:['Iron','B12','Omega-3'], weight:2 },
+  'Weakness / Lethargy':   { nutrients:['Iron','Protein','B12','Vitamin D'], weight:2 },
+};
+const NUTRIENT_FOODS = {
+  'Iron':      { icon:'🫘', foods:['Spinach','Rajma','Chana','Dates','Jaggery','Ragi','Pumpkin seeds'],      tip:'Pair with Vitamin C for 3× better absorption.' },
+  'B12':       { icon:'🥛', foods:['Eggs','Milk','Curd','Paneer','Fish','Fortified plant milk'],              tip:'Pure vegetarians should consider a supplement.' },
+  'Vitamin D': { icon:'☀️', foods:['Morning sunlight','Eggs (yolk)','Mushrooms','Fortified milk'],           tip:'Walk outdoors 9–11 AM for natural Vitamin D.' },
+  'Magnesium': { icon:'🌿', foods:['Almonds','Spinach','Pumpkin seeds','Dark chocolate','Banana'],           tip:'Low magnesium causes poor sleep, cramps, and fatigue.' },
+  'Protein':   { icon:'💪', foods:['All dals','Paneer','Eggs','Curd','Rajma','Soya chunks','Peanuts'],       tip:'Combine different dals for a complete amino acid profile.' },
+  'Zinc':      { icon:'🌱', foods:['Pumpkin seeds','Sesame seeds','Chana','Eggs','Chicken'],                 tip:'Crucial for immunity, taste, and wound healing.' },
+  'Vitamin C': { icon:'🍋', foods:['Amla','Guava','Lemon','Capsicum','Tomato'],                              tip:'Amla has ~20× more Vitamin C than oranges.' },
+  'Calcium':   { icon:'🦴', foods:['Milk','Curd','Ragi','Sesame seeds','Dark leafy greens','Rajma'],         tip:'Ragi is the richest plant-based calcium source in India.' },
+  'Vitamin A': { icon:'🥕', foods:['Carrot','Sweet potato','Spinach','Mango','Eggs'],                        tip:'Fat-soluble — eat with a little ghee for better absorption.' },
+  'Omega-3':   { icon:'🐟', foods:['Flaxseeds','Walnuts','Fish','Chia seeds'],                               tip:'Grind flaxseeds before eating — whole seeds pass undigested.' },
+  'Folate':    { icon:'🌿', foods:['Spinach','Chana','Moong dal','Beetroot','Methi'],                        tip:'Critical for cell development and preventing fatigue.' },
+  'Potassium': { icon:'🍌', foods:['Banana','Sweet potato','Coconut water','All dal','Spinach','Tomato'],    tip:'Regulates blood pressure and prevents muscle cramps.' },
+  'Biotin':    { icon:'🥚', foods:['Eggs (cooked)','Almonds','Sweet potato','Onion'],                        tip:'Supports hair, nail, and skin health.' },
+  'Vitamin E': { icon:'🌻', foods:['Almonds','Sunflower seeds','Spinach','Peanuts'],                         tip:'Powerful antioxidant protecting skin cells.' },
+};
+
 function initSymptomGrid() {
-  const grid = document.getElementById('symptomGrid');
-  grid.innerHTML = Object.keys(SYMPTOM_MAP).map(symptom => `
-    <span class="symptom-tag" onclick="toggleSymptom(this)">${symptom}</span>
-  `).join('');
+  document.getElementById('symptomGrid').innerHTML = Object.keys(SYMPTOM_MAP).map(s =>
+    `<span class="sym-tag" onclick="this.classList.toggle('sel')">${s}</span>`
+  ).join('');
 }
 
-function toggleSymptom(el) { el.classList.toggle('selected'); }
-
 function runDeficiencyCheck() {
-  const selected = Array.from(document.querySelectorAll('.symptom-tag.selected')).map(el => el.textContent.trim());
+  const selected = Array.from(document.querySelectorAll('.sym-tag.sel')).map(el => el.textContent.trim());
   const resultArea = document.getElementById('deficiencyResult');
-  const resultContent = document.getElementById('deficiencyResultContent');
+  const content    = document.getElementById('deficiencyResultContent');
 
-  if (selected.length === 0) {
-    resultContent.innerHTML = `<p style="font-size:14px;color:var(--text-muted);">Please select physiological markers to execute scan.</p>`;
-    resultArea.classList.add('show');
-    return;
+  if (!selected.length) {
+    content.innerHTML = `<p style="font-size:14px;color:var(--text-muted);">Select physiological markers above to run the scan.</p>`;
+    resultArea.classList.add('show'); return;
   }
 
   const scores = {};
-  for (const symptom of selected) {
-    const entry = SYMPTOM_MAP[symptom];
-    if (!entry) continue;
-    for (const nutrient of entry.nutrients) { scores[nutrient] = (scores[nutrient] || 0) + entry.weight; }
+  selected.forEach(s => {
+    const e = SYMPTOM_MAP[s]; if (!e) return;
+    e.nutrients.forEach(n => scores[n] = (scores[n]||0) + e.weight);
+  });
+
+  const ranked = Object.entries(scores).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxS   = ranked[0]?.[1] || 1;
+
+  if (!ranked.length) {
+    content.innerHTML = `<p style="font-size:14px;color:var(--text-muted);">No deficiencies detected for selected markers.</p>`;
+    resultArea.classList.add('show'); return;
   }
 
-  const ranked = Object.entries(scores).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  const maxScore = ranked[0]?.[1] || 1;
-
-  if (ranked.length === 0) {
-    resultContent.innerHTML = `<p style="font-size:14px;color:var(--text-muted);">Parameters within normal bounds. No deficiencies detected.</p>`;
-    resultArea.classList.add('show');
-    return;
-  }
-
-  resultContent.innerHTML = `
+  content.innerHTML = `
     <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">
       Diagnostic run on <strong>${selected.length}</strong> markers. Top probability deficiencies:
     </div>
-    <div class="deficiency-results">
-      ${ranked.map(([nutrient, score], i) => {
-        const data = NUTRIENT_FOODS[nutrient];
-        if (!data) return '';
-        const confidence = score / maxScore >= 0.7 ? 'High' : 'Medium';
-        const confColor = confidence === 'High' ? '#EF4444' : '#D97706';
-        return `
-          <div class="deficiency-card" style="animation: slideUpFade 0.4s ease ${i * 0.1}s both;">
-            <div class="deficiency-icon">${data.icon}</div>
-            <div style="flex:1">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                <div class="deficiency-name">${nutrient} Gap</div>
-                <span style="font-size:11px; font-weight:700; color:${confColor}; background:${confColor}1A; padding:4px 10px; border-radius:12px;">${confidence} Probability</span>
-              </div>
-              <div class="deficiency-foods">
-                ${data.foods.slice(0, 5).map(f => `<span class="deficiency-food-tag">${f}</span>`).join('')}
-              </div>
-              <div class="deficiency-tip" style="margin-top:10px;">💡 ${data.tip}</div>
-            </div>
-          </div>`;
-      }).join('')}
-    </div>
-    <div style="font-size:12px;color:var(--text-muted);margin-top:16px;line-height:1.6;padding-top:16px;border-top:1px dashed var(--border);">
-      ⚠️ Screening subroutine only. Execute full serological blood work for clinical diagnosis.
-    </div>`;
+    ${ranked.map(([n, sc], i) => {
+      const d = NUTRIENT_FOODS[n]; if (!d) return '';
+      const conf = sc/maxS >= 0.7 ? 'High' : 'Medium';
+      const cc   = conf === 'High' ? '#EF4444' : '#D97706';
+      return `<div class="def-card" style="animation:slideUpFade 0.4s ease ${i*0.08}s both;">
+        <div class="def-icon">${d.icon}</div>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div class="def-name">${n} Gap</div>
+            <span style="font-size:10px;font-weight:700;color:${cc};background:${cc}1A;padding:3px 10px;border-radius:12px;">${conf} Probability</span>
+          </div>
+          <div class="def-foods">${d.foods.slice(0,5).map(f=>`<span class="def-food-tag">${f}</span>`).join('')}</div>
+          <div class="def-tip">💡 ${d.tip}</div>
+        </div>
+      </div>`;
+    }).join('')}`;
   resultArea.classList.add('show');
 }
 
-// ══════════════════════════════════════════════════
-// TOOLS: SMART MEAL IMPROVER
-// ══════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════
+   MEAL IMPROVER
+═══════════════════════════════════════════════ */
 async function analyzeMeal() {
-  const input = document.getElementById('mealInput').value.trim();
+  const input     = document.getElementById('mealInput').value.trim();
   const condition = document.getElementById('improverCondition').value;
-  const btn = document.getElementById('improverBtn');
-  const resultArea = document.getElementById('improverResult');
-  const resultContent = document.getElementById('improverResultContent');
+  const btn       = document.getElementById('improverBtn');
+  const area      = document.getElementById('improverResult');
+  const content   = document.getElementById('improverResultContent');
 
   if (!input || input.length < 10) {
-    resultContent.innerHTML = `<p style="font-size:14px;color:#EF4444;">A valid meal vector is required to execute analysis.</p>`;
-    resultArea.classList.add('show');
-    return;
+    content.innerHTML = `<p style="color:#EF4444;font-size:14px;">Please enter a valid meal description (minimum 10 characters).</p>`;
+    area.classList.add('show'); return;
   }
 
   btn.disabled = true;
-  btn.innerHTML = `<span class="tool-spinner"></span> Connecting API...`;
-  resultContent.innerHTML = '';
-  resultArea.classList.remove('show');
+  btn.innerHTML = `<span class="spinner"></span> Connecting API...`;
+  content.innerHTML = '';
+  area.classList.remove('show');
 
   try {
     const res = await fetch('/api/improve-meal', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ mealDescription: input, condition, aiConfig: state.aiConfig })
     });
-
-    if (!res.ok) {
-      const errBody = await res.json().catch(() => ({}));
-      throw new Error(errBody.error || `Server fault: ${res.status}`);
-    }
+    if (!res.ok) { const e = await res.json().catch(()=>{}); throw new Error(e?.error || `Server error ${res.status}`); }
     const data = await res.json();
 
-    const renderItems = (items, isGood) => items.map(s => 
-      `<div style="display:flex;gap:12px;padding:12px;background:var(--white);border-radius:8px;border:1px solid var(--border);margin-bottom:8px;">
-        <span style="color:${isGood ? 'var(--green-main)' : '#D97706'}; font-weight:bold;">${isGood ? '✓' : '🔧'}</span>
-        <div style="font-size:14px;color:var(--text-dark);">${s}</div>
-      </div>`
-    ).join('');
+    content.innerHTML = `
+      <div style="font-size:15px;font-weight:600;color:var(--text-dark);margin-bottom:12px;line-height:1.6;">${data.summary}</div>
+      ${data.estimatedKcal ? `<div style="font-size:13px;color:var(--text-muted);margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border);">Caloric Estimate: ~<strong>${data.estimatedKcal}</strong> kcal</div>` : ''}
 
-    resultContent.innerHTML = `
-      <div style="font-size:15px;color:var(--text-dark);font-weight:600;margin-bottom:16px;line-height:1.6;">${data.summary}</div>
-      ${data.estimatedKcal ? `<div style="font-size:13px;color:var(--text-muted);margin-bottom:24px;border-bottom:1px solid var(--border);padding-bottom:16px;">Caloric Estimation: ~<strong>${data.estimatedKcal}</strong> kcal</div>` : ''}
-
-      ${data.strengths && data.strengths.length ? `
-        <div style="margin-bottom:24px;">
-          <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">Existing Strengths</div>
-          ${renderItems(data.strengths, true)}
+      ${data.strengths?.length ? `
+        <div style="margin-bottom:20px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;">Existing Strengths</div>
+          ${data.strengths.map(s=>`<div class="improv-item"><span style="color:var(--green-main);font-weight:700;">✓</span><div style="font-size:14px;">${s}</div></div>`).join('')}
         </div>` : ''}
 
-      ${data.improvements && data.improvements.length ? `
-        <div style="margin-bottom:24px;">
-          <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">Target Optimization Points</div>
-          ${data.improvements.map(imp => `
-            <div style="background:var(--white);border-radius:10px;border:1px solid var(--border);padding:14px;margin-bottom:10px;">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-                <span style="font-size:10px;font-weight:700;letter-spacing:1px;padding:4px 10px;border-radius:16px;background:#FEF3C7;color:#92400E;text-transform:uppercase;">${imp.priority} Priority</span>
-                <div style="font-weight:700;color:var(--text-dark);font-size:14px;">${imp.issue}</div>
-              </div>
-              <div style="font-size:14px;color:var(--text-mid);padding-top:4px;">${imp.suggestion}</div>
+      ${data.improvements?.length ? `
+        <div style="margin-bottom:20px;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;">Optimization Points</div>
+          ${data.improvements.map(imp=>`
+            <div class="improv-issue">
+              <span class="priority-tag">${imp.priority} Priority</span>
+              <div style="font-weight:700;color:var(--text-dark);font-size:14px;margin-bottom:4px;">${imp.issue}</div>
+              <div style="font-size:14px;color:var(--text-mid);">${imp.suggestion}</div>
             </div>`).join('')}
         </div>` : ''}
 
-      ${data.missingNutrients && data.missingNutrients.length ? `
-        <div style="margin-bottom:24px;">
-          <div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;">Missing Micronutrients</div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;">
-            ${data.missingNutrients.map(n => `<span style="background:#F5F3FF;border:1px solid #E6D5FF;border-radius:20px;padding:6px 14px;font-size:13px;color:#6D28D9;font-weight:600;">${n}</span>`).join('')}
-          </div>
-        </div>` : ''}
-    `;
-
-    resultArea.classList.add('show');
-
+      ${data.missingNutrients?.length ? `
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;">Missing Micronutrients</div>
+          <div>${data.missingNutrients.map(n=>`<span class="missing-tag">${n}</span>`).join('')}</div>
+        </div>` : ''}`;
+    area.classList.add('show');
   } catch (err) {
-    resultContent.innerHTML = `<p style="color:#EF4444;font-size:14px;padding:16px;background:#FEF2F2;border-radius:8px;">Execution Failure: ${err.message}</p>`;
-    resultArea.classList.add('show');
+    content.innerHTML = `<p style="color:#EF4444;font-size:14px;padding:14px;background:#FEF2F2;border-radius:8px;">Error: ${err.message}</p>`;
+    area.classList.add('show');
   } finally {
     btn.disabled = false;
-    btn.innerHTML = 'Analyze & Refine Meal';
+    btn.innerHTML = '🔧 Analyze & Refine Meal';
   }
 }
 
-// ══════════════════════════════════════════════════
-// TOOLS: WEEKLY PLANNER
-// ══════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════
+   WEEKLY PLANNER
+═══════════════════════════════════════════════ */
 async function generateWeeklyPlan() {
-  if (!state.results) {
-    alert('Base calibration missing. Please execute NutriPlan sequence above first.');
-    return;
-  }
-
-  const btn = document.getElementById('weeklyBtn');
-  const resultArea = document.getElementById('weeklyResult');
-  const resultContent = document.getElementById('weeklyResultContent');
+  if (!state.results) { alert('Please run the calculator first.'); return; }
+  const btn     = document.getElementById('weeklyBtn');
+  const area    = document.getElementById('weeklyResult');
+  const content = document.getElementById('weeklyResultContent');
 
   btn.disabled = true;
-  btn.innerHTML = `<span class="tool-spinner"></span> Generating Matrix...`;
-  resultContent.innerHTML = `
-    <div style="text-align:center;padding:40px 0;color:var(--text-muted);">
-      <div class="spinner" style="margin:0 auto 20px;border-top-color:var(--tool-violet);border-color:rgba(124,58,237,0.2)"></div>
-      <div style="font-size:15px;font-weight:500;">Building 7-day algorithmic food matrix...</div>
-    </div>`;
-  resultArea.classList.add('show');
+  btn.innerHTML = `<span class="spinner"></span> Building Matrix...`;
+  content.innerHTML = `<div style="display:flex;align-items:center;gap:16px;padding:32px 0;"><div class="spinner-dark" style="border-top-color:var(--tool-violet);border-color:rgba(124,58,237,0.2);"></div><div style="font-size:14px;color:var(--text-muted);">Building 7-day algorithmic food matrix...</div></div>`;
+  area.classList.add('show');
 
   const r = state.results;
-
   try {
     const res = await fetch('/api/weekly-plan', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        targetCal: Math.round(r.targetCal),
-        protein:   r.protein,
-        condition: state.condition,
-        foodPref:  state.foodPref,
-        budget:    state.budget,
-        aiConfig:  state.aiConfig
-      })
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ targetCal: Math.round(r.targetCal), protein: r.protein, condition: state.condition, foodPref: state.foodPref, budget: state.budget, aiConfig: state.aiConfig })
     });
-
-    if (!res.ok) {
-      const errBody = await res.json().catch(() => ({}));
-      throw new Error(errBody.error || `Server fault: ${res.status}`);
-    }
+    if (!res.ok) { const e = await res.json().catch(()=>{}); throw new Error(e?.error || `Server error ${res.status}`); }
     const data = await res.json();
-    renderWeeklyPlan(data);
-
+    renderWeeklyPlan(data, content);
   } catch (err) {
-    resultContent.innerHTML = `<p style="color:#EF4444;font-size:14px;padding:16px;background:#FEF2F2;border-radius:8px;">Execution Failure: ${err.message}</p>`;
+    content.innerHTML = `<p style="color:#EF4444;font-size:14px;padding:14px;background:#FEF2F2;border-radius:8px;">Error: ${err.message}</p>`;
   } finally {
     btn.disabled = false;
     btn.innerHTML = '↺ Regenerate Matrix';
   }
 }
 
-function renderWeeklyPlan(data) {
-  const resultContent = document.getElementById('weeklyResultContent');
-
-  const tableRows = (data.days || []).map(day => `
-    <tr style="transition:background 0.2s; border-bottom:1px solid var(--border);">
-      <td style="font-weight:700;color:var(--text-dark);white-space:nowrap;padding:16px;">${day.day}</td>
-      <td style="padding:16px;line-height:1.5;"><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Breakfast</div>${day.breakfast}</td>
-      <td style="padding:16px;line-height:1.5;"><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Lunch</div>${day.lunch}</td>
-      <td style="padding:16px;line-height:1.5;"><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Dinner</div>${day.dinner}</td>
-      <td style="padding:16px;line-height:1.5;"><div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px;">Snacks</div>${day.snacks}</td>
+function renderWeeklyPlan(data, content) {
+  const catIcons = { grains:'🌾', proteins:'🫘', vegetables:'🥦', fruits:'🍎', dairy:'🥛', spicesCondiments:'🌶️', nutsSeeds:'🥜' };
+  const rows = (data.days||[]).map(d => `
+    <tr>
+      <td style="font-weight:700;color:var(--text-dark);white-space:nowrap;">${d.day}</td>
+      <td><div class="td-head">Breakfast</div>${d.breakfast}</td>
+      <td><div class="td-head">Lunch</div>${d.lunch}</td>
+      <td><div class="td-head">Dinner</div>${d.dinner}</td>
+      <td><div class="td-head">Snacks</div>${d.snacks}</td>
     </tr>`).join('');
 
   const grocery = data.groceryList || {};
-  const catIcons = { grains: '🌾', proteins: '🫘', vegetables: '🥦', fruits: '🍎', dairy: '🥛', spicesCondiments: '🌶️', nutsSeeds: '🥜' };
-  
-  const groceryHTML = Object.entries(grocery).map(([cat, items]) => {
-    if (!items || items.length === 0) return '';
-    return `
-      <div style="background:var(--white);border-radius:12px;border:1px solid var(--border);padding:20px;">
-        <div style="font-size:13px;font-weight:700;text-transform:uppercase;color:var(--text-dark);margin-bottom:16px;display:flex;align-items:center;gap:8px;">${catIcons[cat]||'📦'} ${cat}</div>
-        ${items.map(item => `<div style="font-size:14px;color:var(--text-mid);padding:6px 0;border-bottom:1px dashed var(--cream-mid);">• ${item}</div>`).join('')}
-      </div>`;
+  const grocHTML = Object.entries(grocery).map(([cat,items]) => {
+    if (!items?.length) return '';
+    return `<div class="grocery-cat">
+      <div class="grocery-cat-title">${catIcons[cat]||'📦'} ${cat}</div>
+      ${items.map(i=>`<div class="grocery-item">• ${i}</div>`).join('')}
+    </div>`;
   }).join('');
 
-  resultContent.innerHTML = `
-    <div style="overflow-x:auto; background:var(--white); border-radius:16px; border:1px solid var(--border); box-shadow:var(--shadow-sm);">
-      <table style="width:100%;border-collapse:collapse;font-size:14px;text-align:left;">
-        <thead>
-          <tr style="background:var(--tool-violet);color:white;">
-            <th style="padding:16px;font-weight:600;text-transform:uppercase;letter-spacing:1px;font-size:12px;border-top-left-radius:16px;">Day</th>
-            <th style="padding:16px;font-weight:600;text-transform:uppercase;letter-spacing:1px;font-size:12px;">Breakfast</th>
-            <th style="padding:16px;font-weight:600;text-transform:uppercase;letter-spacing:1px;font-size:12px;">Lunch</th>
-            <th style="padding:16px;font-weight:600;text-transform:uppercase;letter-spacing:1px;font-size:12px;">Dinner</th>
-            <th style="padding:16px;font-weight:600;text-transform:uppercase;letter-spacing:1px;font-size:12px;border-top-right-radius:16px;">Snacks</th>
-          </tr>
-        </thead>
-        <tbody>${tableRows}</tbody>
+  content.innerHTML = `
+    <div class="week-table-wrap" style="animation:slideUpFade 0.4s ease both;">
+      <table class="week-table">
+        <thead><tr>
+          <th>Day</th><th>Breakfast</th><th>Lunch</th><th>Dinner</th><th>Snacks</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
       </table>
     </div>
-
-    ${groceryHTML ? `
-    <div style="margin-top:40px;">
-      <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--text-dark);margin-bottom:24px;display:flex;align-items:center;gap:12px;">
-        🛒 Generated Provision List
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px;">
-        ${groceryHTML}
-      </div>
-      <button onclick="window.print()" style="display:inline-flex;align-items:center;gap:10px;background:var(--white);border:1px solid var(--border);border-radius:8px;padding:12px 20px;font-size:14px;font-weight:700;color:var(--text-dark);cursor:pointer;margin-top:24px;box-shadow:var(--shadow-sm);transition:all 0.2s;">
-        🖨️ Export to Print
-      </button>
-    </div>` : ''}
-  `;
+    ${grocHTML ? `
+    <div style="margin-top:32px;">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;margin-bottom:20px;">🛒 Provision List</div>
+      <div class="grocery-grid">${grocHTML}</div>
+      <button onclick="window.print()" style="margin-top:20px;background:var(--white);border:1px solid var(--border);border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:var(--shadow-sm);">🖨️ Export to Print</button>
+    </div>` : ''}`;
 }
 
-// ══════════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════ */
 updateUnitLabels();
 initSymptomGrid();
 </script>
